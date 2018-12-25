@@ -33,6 +33,7 @@ implements
      *
      * @param   string              $method         The HTTP method associated with the request.
      * @param   UriInterface|string $uri            The URI associated with the request.
+     *
      * @return  RequestInterface                    Request.
      ************************************************************************/
     public function createRequest(string $method, $uri) : RequestInterface
@@ -60,6 +61,7 @@ implements
      * @param   array               $serverParams   An array of Server API (SAPI)
      *                                              parameters with which to seed
      *                                              the generated request instance.
+     *
      * @return  ServerRequestInterface              New server request.
      ************************************************************************/
     public function createServerRequest(string $method, $uri, array $serverParams = []) : ServerRequestInterface
@@ -82,6 +84,7 @@ implements
      *                                      the status code in the generated response.
      *                                      If none is provided, implementations MAY use
      *                                      the defaults as suggested in the HTTP specification.
+     *
      * @return  ResponseInterface           Response.
      ************************************************************************/
     public function createResponse(int $code = 200, string $reasonPhrase = '') : ResponseInterface

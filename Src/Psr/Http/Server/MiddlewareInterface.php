@@ -27,6 +27,7 @@ interface MiddlewareInterface
      *
      * @param   ServerRequestInterface  $request    Server request.
      * @param   RequestHandlerInterface $handler    Request handler.
+     *
      * @return  ResponseInterface                   Response.
      ************************************************************************/
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler) : ResponseInterface;

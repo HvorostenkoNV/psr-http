@@ -81,6 +81,7 @@ interface ServerRequestInterface extends RequestInterface
      * updated cookie values.
      *
      * @param   array $cookies              Array of key/value pairs representing cookies.
+     *
      * @return  ServerRequestInterface      Instance with the specified cookies.
      ************************************************************************/
     public function withCookieParams(array $cookies) : ServerRequestInterface;
@@ -117,6 +118,7 @@ interface ServerRequestInterface extends RequestInterface
      *
      * @param   array $query                Array of query string arguments,
      *                                      typically from $_GET.
+     *
      * @return  ServerRequestInterface      Instance with the specified query string arguments.
      ************************************************************************/
     public function withQueryParams(array $query) : ServerRequestInterface;
@@ -141,6 +143,7 @@ interface ServerRequestInterface extends RequestInterface
      * updated body parameters.
      *
      * @param   array $uploadedFiles        Array tree of UploadedFileInterface instances.
+     *
      * @return  ServerRequestInterface      Instance with the specified uploaded files.
      * @throws  InvalidArgumentException    Invalid structure is provided.
      ************************************************************************/
@@ -185,6 +188,7 @@ interface ServerRequestInterface extends RequestInterface
      *
      * @param   null|array|object $data     The deserialized body data. This will
      *                                      typically be in an array or object.
+     *
      * @return  ServerRequestInterface      Instance with the specified body parameters.
      * @throws  InvalidArgumentException    Unsupported argument type is provided.
      ************************************************************************/
@@ -216,6 +220,7 @@ interface ServerRequestInterface extends RequestInterface
      * @param   string  $name               Attribute name.
      * @param   mixed   $default            Default value to return if the attribute
      *                                      does not exist.
+     *
      * @return  mixed                       Derived request attribute.
      ************************************************************************/
     public function getAttribute(string $name, $default = null);
@@ -233,6 +238,7 @@ interface ServerRequestInterface extends RequestInterface
      *
      * @param   string  $name               Attribute name.
      * @param   mixed   $value              Value of the attribute.
+     *
      * @return  ServerRequestInterface      Instance with the specified derived
      *                                      request attribute.
      ************************************************************************/
@@ -250,6 +256,7 @@ interface ServerRequestInterface extends RequestInterface
      * @see getAttributes()
      *
      * @param   string $name                Attribute name.
+     *
      * @return  ServerRequestInterface      Instance that removes the specified
      *                                      derived request attribute.
      ************************************************************************/

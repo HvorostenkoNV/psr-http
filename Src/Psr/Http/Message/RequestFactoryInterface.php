@@ -15,6 +15,7 @@ interface RequestFactoryInterface
      *
      * @param   string              $method     The HTTP method associated with the request.
      * @param   UriInterface|string $uri        The URI associated with the request.
+     *
      * @return  RequestInterface                Request.
      ************************************************************************/
     public function createRequest(string $method, $uri) : RequestInterface;

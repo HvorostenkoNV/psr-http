@@ -29,6 +29,7 @@ interface UploadedFileFactoryInterface
      *                                              the client, if any.
      * @param   string          $clientMediaType    The media type as provided by
      *                                              the client, if any.
+     *
      * @return  UploadedFileInterface               Uploaded file.
      * @throws  InvalidArgumentException            File resource is not readable.
      ************************************************************************/

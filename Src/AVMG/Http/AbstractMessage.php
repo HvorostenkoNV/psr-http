@@ -44,6 +44,7 @@ abstract class AbstractMessage implements MessageInterface
      * of the message, and MUST return an instance that has the new protocol version.
      *
      * @param   string $version             HTTP protocol version.
+     *
      * @return  MessageInterface            Instance with the specified HTTP protocol version.
      ************************************************************************/
     public function withProtocolVersion(string $version) : MessageInterface
@@ -106,6 +107,7 @@ abstract class AbstractMessage implements MessageInterface
      * Checks if a header exists by the given case-insensitive name.
      *
      * @param   string $name                Case-insensitive header field name.
+     *
      * @return  bool                        Any header names match the given header
      *                                      name using a case-insensitive string
      *                                      comparison. Returns false if no matching
@@ -127,6 +129,7 @@ abstract class AbstractMessage implements MessageInterface
      * an empty array.
      *
      * @param   string $name                Case-insensitive header field name.
+     *
      * @return  string[]                    Array of string values as provided
      *                                      for the given header. If the header
      *                                      does not appear in the message,
@@ -152,6 +155,7 @@ abstract class AbstractMessage implements MessageInterface
      * an empty string.
      *
      * @param   string $name                Case-insensitive header field name.
+     *
      * @return  string                      String of values as provided for
      *                                      the given header concatenated together
      *                                      using a comma. If the header does not
@@ -176,22 +180,20 @@ abstract class AbstractMessage implements MessageInterface
      *
      * @param   string          $name       Case-insensitive header field name.
      * @param   string|string[] $value      Header value(s).
+     *
      * @return  MessageInterface            Instance with the provided value
      *                                      replacing the specified header.
      * @throws  InvalidArgumentException    Invalid header names or values.
      ************************************************************************/
     public function withHeader(string $name, $value) : MessageInterface
     {
-        $headerName             = null;
-        $headerNameLowercase    = null;
-        $headerValuesRaw        = (array) $value;
-        $headerValues           = [];
-        $newInstance            = clone $this;
-
         try
         {
             $headerName             = MessageHeader::normalizeHeaderName($name);
             $headerNameLowercase    = strtolower($headerName);
+            $headerValuesRaw        = (array) $value;
+            $headerValues           = [];
+            $newInstance            = clone $this;
         }
         catch (NormalizingException $exception)
         {
@@ -228,6 +230,7 @@ abstract class AbstractMessage implements MessageInterface
      *
      * @param   string          $name       Case-insensitive header field name to add.
      * @param   string|string[] $value      Header value(s).
+     *
      * @return  MessageInterface            Instance with the specified header
      *                                      appended with the given value.
      * @throws  InvalidArgumentException    Invalid header names or values.
@@ -257,6 +260,7 @@ abstract class AbstractMessage implements MessageInterface
      * the named header.
      *
      * @param   string $name                Case-insensitive header field name to remove.
+     *
      * @return  MessageInterface            Instance without the specified header.
      ************************************************************************/
     public function withoutHeader(string $name) : MessageInterface
@@ -293,8 +297,8 @@ abstract class AbstractMessage implements MessageInterface
      * new body stream.
      *
      * @param   StreamInterface $body       Body.
+     *
      * @return  MessageInterface            Instance with the specified message body.
-     * @throws  InvalidArgumentException    Body is not valid.
      ************************************************************************/
     public function withBody(StreamInterface $body) : MessageInterface
     {

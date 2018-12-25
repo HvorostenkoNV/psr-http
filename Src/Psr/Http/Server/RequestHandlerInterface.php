@@ -23,6 +23,7 @@ interface RequestHandlerInterface
      * May call other collaborating code to generate the response.
      *
      * @param   ServerRequestInterface $request     Request.
+     *
      * @return  ResponseInterface                   Response.
      ************************************************************************/
     public function handle(ServerRequestInterface $request) : ResponseInterface;

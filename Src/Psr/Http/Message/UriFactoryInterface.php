@@ -16,6 +16,7 @@ interface UriFactoryInterface
      * Create a new URI.
      *
      * @param   string $uri                 The URI to parse.
+     *
      * @return  UriInterface                URI.
      * @throws  InvalidArgumentException    Given URI cannot be parsed.
      ************************************************************************/

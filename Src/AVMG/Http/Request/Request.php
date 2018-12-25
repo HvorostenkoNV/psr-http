@@ -74,6 +74,7 @@ class Request extends AbstractRequest implements RequestInterface
      * Checks if a header exists by the given case-insensitive name.
      *
      * @param   string $name                Case-insensitive header field name.
+     *
      * @return  bool                        Any header names match the given header
      *                                      name using a case-insensitive string
      *                                      comparison. Returns false if no matching
@@ -104,6 +105,7 @@ class Request extends AbstractRequest implements RequestInterface
      * an empty array.
      *
      * @param   string $name                Case-insensitive header field name.
+     *
      * @return  string[]                    Array of string values as provided
      *                                      for the given header. If the header
      *                                      does not appear in the message,

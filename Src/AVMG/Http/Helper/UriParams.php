@@ -13,9 +13,11 @@ use AVMG\Http\Exception\NormalizingException;
 class UriParams
 {
     private const
-        PORT_MIN_VALUE                  = 1,
-        PORT_MAX_VALUE                  = 65535,
-        SCHEMES_STANDARD_PORTS          =
+        URI_ALLOWED_SPECIAL_CHARS           =
+            [
+                '-', '_', '.', '~'
+            ],
+        SCHEMES_STANDARD_PORTS              =
             [
                 'tcpmux'    => [1],
                 'qotd'      => [17],
@@ -36,100 +38,87 @@ class UriParams
                 'irc'       => [194],
                 'https'     => [443]
             ],
-        SCHEME_ALLOWED_SPECIAL_CHARS    =
+        SCHEME_ALLOWED_SPECIAL_CHARS        =
             [
                 '+', '-', '.'
             ],
-        HOST_ALLOWED_SPECIAL_CHARS      =
+        DOMAIN_NAME_ALLOWED_SPECIAL_CHARS   =
             [
                 '-', '.'
             ],
-        PATH_ALLOWED_SPECIAL_CHARS      =
-            [
-                '+', '-', '=',
-                ',', ':', ';',
-                '(', ')', '_',
-                '!', '$', '&',
-                '.', '~', '\'',
-                '*', '@'
-            ];
+        PORT_MIN_VALUE                      = 1,
+        PORT_MAX_VALUE                      = 65535;
     private static
         $regularMasks = [];
     /** **********************************************************************
      * Normalize scheme.
      *
-     * @param   string $value               Scheme.
+     * @param   string $scheme              Scheme.
+     *
      * @return  string                      Normalized scheme.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
-    public static function normalizeScheme(string $value) : string
+    public static function normalizeScheme(string $scheme) : string
     {
-        if (strlen($value) <= 0)
+        $schemeConverted    = strtolower(trim($scheme));
+        $schemeMask         = self::getMask('scheme');
+        $matches            = [];
+
+        preg_match($schemeMask, $schemeConverted, $matches);
+
+        if (!isset($matches[0]) || $matches[0] !== $schemeConverted)
         {
             throw new NormalizingException;
         }
 
-        $valueConverted = strtolower(trim($value));
-        $schemeMask     = self::getMask('scheme');
-        $matches        = [];
-
-        preg_match($schemeMask, $valueConverted, $matches);
-
-        if (!isset($matches[0]) || $matches[0] !== $valueConverted)
-        {
-            throw new NormalizingException;
-        }
-
-        return $valueConverted;
+        return $schemeConverted;
     }
     /** **********************************************************************
      * Normalize host.
      *
-     * @param   string $value               Host.
+     * @param   string $host                Host.
+     *
      * @return  string                      Normalized host.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
-    public static function normalizeHost(string $value) : string
+    public static function normalizeHost(string $host) : string
     {
-        if (strlen($value) <= 0)
-        {
-            throw new NormalizingException;
-        }
-
-        $valueConverted = strtolower(trim($value));
+        $hostConverted  = strtolower(trim($host));
         $hostMask       = self::getMask('host');
         $matches        = [];
 
-        preg_match($hostMask, $valueConverted, $matches);
+        preg_match($hostMask, $hostConverted, $matches);
 
-        if (!isset($matches[0]) || $matches[0] !== $valueConverted)
+        if (!isset($matches[0]) || $matches[0] !== $hostConverted)
         {
             throw new NormalizingException;
         }
 
-        return $valueConverted;
+        return $hostConverted;
     }
     /** **********************************************************************
      * Normalize port.
      *
-     * @param   int     $value              Port.
+     * @param   int     $port               Port.
+     *
      * @return  int                         Normalized port.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
-    public static function normalizePort(int $value) : int
+    public static function normalizePort(int $port) : int
     {
-        if ($value < self::PORT_MIN_VALUE || $value > self::PORT_MAX_VALUE)
+        if ($port < self::PORT_MIN_VALUE || $port > self::PORT_MAX_VALUE)
         {
             throw new NormalizingException;
         }
 
-        return $value;
+        return $port;
     }
     /** **********************************************************************
      * Check if port is standard for given scheme.
      *
      * @param   int     $port               Port.
-     * @param   string  $scheme          preg_match   Scheme.
+     * @param   string  $scheme             Scheme.
+     *
      * @return  bool                        Port is standard for given scheme.
      ************************************************************************/
     public static function isStandardPort(int $port, string $scheme) : bool
@@ -141,58 +130,51 @@ class UriParams
     /** **********************************************************************
      * Normalize user info.
      *
-     * @param   string $value               User info.
+     * @param   string $userInfo            User info.
+     *
      * @return  string                      Normalized string.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
-    public static function normalizeUserInfo(string $value) : string
+    public static function normalizeUserInfo(string $userInfo) : string
     {
-        if (strlen($value) <= 0)
+        if (strlen($userInfo) <= 0)
         {
             throw new NormalizingException;
         }
 
-        $valueEncoded = rawurlencode(rawurldecode($value));
-
-        return $valueEncoded;
+        return rawurlencode(rawurldecode($userInfo));
     }
     /** **********************************************************************
      * Normalize path.
      *
-     * @param   string $value               Path.
+     * @param   string $path                Path.
+     *
      * @return  string                      Normalized path.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
-    public static function normalizePath(string $value) : string
+    public static function normalizePath(string $path) : string
     {
-        if (strlen($value) <= 0)
-        {
-            throw new NormalizingException;
-        }
+        $pathMask       = self::getMask('path_part');
+        $pathExplode    = strpos($path, '/') !== false ? explode('/', $path) : [$path];
 
-        $pathMask       = self::getMask('path');
-        $pathExplode    = strpos($value, '/') !== false
-            ? explode('/', $value)
-            : [$value];
-        $matches        = [];
-
-        foreach ($pathExplode as $index => $part)
+        foreach ($pathExplode as $index => $value)
         {
-            if (strlen($part) <= 0)
+            if (strlen($value) <= 0)
             {
                 continue;
             }
 
-            $partEncoded = rawurlencode(rawurldecode($part));
+            $valueEncoded   = rawurlencode(rawurldecode($value));
+            $matches        = [];
 
-            preg_match($pathMask, $partEncoded, $matches);
+            preg_match($pathMask, $valueEncoded, $matches);
 
-            if (!isset($matches[0]) || $matches[0] !== $partEncoded)
+            if (!isset($matches[0]) || $matches[0] !== $valueEncoded)
             {
                 throw new NormalizingException;
             }
 
-            $pathExplode[$index] = $partEncoded;
+            $pathExplode[$index] = $valueEncoded;
         }
 
         return implode('/', $pathExplode);
@@ -200,40 +182,41 @@ class UriParams
     /** **********************************************************************
      * Normalize query.
      *
-     * @param   string $value               Query.
+     * @param   string $query               Query.
+     *
      * @return  string                      Normalized query.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
-    public static function normalizeQuery(string $value) : string
+    public static function normalizeQuery(string $query) : string
     {
-        if (strlen($value) <= 0)
-        {
-            throw new NormalizingException;
-        }
-
         $queryMask      = self::getMask('query');
-        $queryValidated = ltrim($value, '?');
-        $queryExploded  = explode('&', $queryValidated);
-        $matches        = [];
+        $queryConverted = trim($query,'?&');
+        $queryConverted = preg_replace('/\&{1,}/', '&', $queryConverted);
+        $queryConverted = preg_replace('/\={1,}/', '=', $queryConverted);
+        $queryExploded  = explode('&', $queryConverted);
 
         foreach ($queryExploded as $index => $part)
         {
-            $partExplode    = explode('=', $part, 2);
-            $partExplode[1] = $partExplode[1] ?? '';
+            $partExploded = explode('=', $part);
 
-            foreach ($partExplode as $partIndex => $partValue)
+            foreach ($partExploded as $partIndex => $partValue)
             {
-                preg_match($queryMask, $partValue, $matches);
+                $partValueEncoded   = rawurlencode(rawurldecode($partValue));
+                $matches            = [];
 
-                if (!isset($matches[0]) || $matches[0] !== $partValue)
-                {
-                    $partExplode[$partIndex] = $partValue;
-                }
+                preg_match($queryMask, $partValueEncoded, $matches);
+
+                $partExploded[$partIndex] = isset($matches[0]) && $matches[0] === $partValueEncoded
+                    ? $partValueEncoded
+                    : '';
             }
 
-            $queryExploded[$index] = strlen($partExplode[1]) > 0
-                ? "{$partExplode[0]}={$partExplode[1]}"
-                : $partExplode[0];
+            $key    = $partExploded[0] ?? '';
+            $value  = $partExploded[1] ?? '';
+
+            $queryExploded[$index] = strlen($key) > 0 && strlen($value) > 0
+                ? "$key=$value"
+                : $key;
         }
 
         $queryExploded = array_filter($queryExploded, function($value)
@@ -241,12 +224,18 @@ class UriParams
             return strlen($value) > 0;
         });
 
+        if (count($queryExploded) <= 0)
+        {
+            throw new NormalizingException;
+        }
+
         return implode('&', $queryExploded);
     }
     /** **********************************************************************
      * Normalize fragment.
      *
      * @param   string $fragment            Fragment.
+     *
      * @return  string                      Normalized fragment.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
@@ -273,6 +262,7 @@ class UriParams
      * Normalize query or fragment.
      *
      * @param   string $value               Query or fragment.
+     *
      * @return  string                      Normalized value.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
@@ -292,6 +282,7 @@ class UriParams
      * Get regular expression mask by given type.
      *
      * @param   string $type                Type.
+     *
      * @return  string                      Regular expression mask by given type.
      ************************************************************************/
     private static function getMask(string $type) : string
@@ -314,15 +305,16 @@ class UriParams
                 $mask = "/^[a-z]{1}[a-z0-9$mask]{1,}/";
                 break;
             case 'host':
-                foreach (self::HOST_ALLOWED_SPECIAL_CHARS as $char)
+                foreach (self::DOMAIN_NAME_ALLOWED_SPECIAL_CHARS as $char)
                 {
                     $mask .= "\\$char";
                 }
 
                 $mask = "/^[a-z0-9]{1}[a-z0-9$mask]{1,}/";
                 break;
-            case 'path':
-                foreach (self::PATH_ALLOWED_SPECIAL_CHARS as $char)
+            case 'path_part':
+            case 'query':
+                foreach (self::URI_ALLOWED_SPECIAL_CHARS as $char)
                 {
                     $mask .= "\\$char";
                 }

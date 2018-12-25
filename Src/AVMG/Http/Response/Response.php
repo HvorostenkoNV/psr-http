@@ -72,6 +72,7 @@ class Response extends AbstractMessage implements ResponseInterface
      *                                      provided status code; if none is provided,
      *                                      implementations MAY use the defaults
      *                                      as suggested in the HTTP specification.
+     *
      * @return  ResponseInterface           Instance with the specified status code
      *                                      and, optionally, reason phrase.
      * @throws  InvalidArgumentException    Invalid status code arguments.

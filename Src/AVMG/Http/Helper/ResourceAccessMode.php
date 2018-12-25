@@ -32,6 +32,7 @@ class ResourceAccessMode
      * Normalize mode value.
      *
      * @param   string $value               Mode value.
+     *
      * @return  string                      Normalized mode value.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
@@ -73,6 +74,7 @@ class ResourceAccessMode
      * @param   bool    $create             Try to create file.
      * @param   bool    $rewrite            File rewriting.
      * @param   bool    $lock               File locking while processing.
+     *
      * @return  string                      Resource mode.
      ************************************************************************/
     public static function get
@@ -141,6 +143,7 @@ class ResourceAccessMode
      * Check mode value is readable.
      *
      * @param   string $value               Mode value.
+     *
      * @return  bool                        Is readable.
      ************************************************************************/
     public static function isReadable(string $value) : bool
@@ -154,6 +157,7 @@ class ResourceAccessMode
      * Check mode value is writable.
      *
      * @param   string $value               Mode value.
+     *
      * @return  bool                        Is writable.
      ************************************************************************/
     public static function isWritable(string $value) : bool
@@ -167,6 +171,7 @@ class ResourceAccessMode
      * Get resource mode without special flag.
      *
      * @param   string $value               Mode value.
+     *
      * @return  string                      Mode value without special flag.
      ************************************************************************/
     private static function getValueClear(string $value) : string
@@ -184,6 +189,7 @@ class ResourceAccessMode
      * Get resource mode with special flag.
      *
      * @param   string $value               Mode value.
+     *
      * @return  string                      Mode value with special flag.
      ************************************************************************/
     private static function getValueUpgraded(string $value) : string
@@ -202,6 +208,7 @@ class ResourceAccessMode
      * Get resource mode normalized.
      *
      * @param   string $value               Mode value.
+     *
      * @return  string                      Mode value normalized.
      ************************************************************************/
     private static function getValueNormalized(string $value) : string

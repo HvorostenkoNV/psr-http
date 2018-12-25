@@ -38,6 +38,7 @@ class UploadedFile implements UploadedFileInterface
      *                                              the client, if any.
      * @param   string          $clientMediaType    The media type as provided by
      *                                              the client, if any.
+     *
      * @throws  InvalidArgumentException            File resource is not readable.
      ************************************************************************/
     public function __construct
@@ -129,6 +130,7 @@ class UploadedFile implements UploadedFileInterface
      * @see http://php.net/move_uploaded_file
      *
      * @param   string $targetPath          Path to which to move the uploaded file.
+     *
      * @return  void
      * @throws  InvalidArgumentException    $targetPath specified is invalid.
      * @throws  RuntimeException            On any error during the move operation or
@@ -152,12 +154,12 @@ class UploadedFile implements UploadedFileInterface
         if (!$targetDirectory->isDir())
         {
             $path = $targetDirectory->getPathname();
-            throw new RuntimeException("target directory \"$path\" does not exist");
+            throw new InvalidArgumentException("target directory \"$path\" does not exist");
         }
         if (!$targetDirectory->isWritable())
         {
             $path = $targetDirectory->getPathname();
-            throw new RuntimeException("target directory \"$path\" is not writable");
+            throw new InvalidArgumentException("target directory \"$path\" is not writable");
         }
 
         try
@@ -178,7 +180,7 @@ class UploadedFile implements UploadedFileInterface
      *
      * @return int|null                     File size in bytes or null if unknown.
      ************************************************************************/
-    public function getSize() : ?null
+    public function getSize() : ?int
     {
         if (!is_null($this->size))
         {
@@ -253,6 +255,7 @@ class UploadedFile implements UploadedFileInterface
      * Write instance stream to file
      *
      * @param   SplFileInfo $file           File.
+     *
      * @return  void
      * @throws  RuntimeException            File writing error.
      ************************************************************************/
@@ -261,7 +264,6 @@ class UploadedFile implements UploadedFileInterface
         $filePath           = $file->getPathname();
         $needStreamMode     = ResourceAccessMode::get('readWrite', 'begin', true, true);
         $newFileStream      = fopen($filePath, $needStreamMode);
-        $currentFileStream  = null;
 
         if ($newFileStream === false)
         {
@@ -271,16 +273,16 @@ class UploadedFile implements UploadedFileInterface
         try
         {
             $currentFileStream = $this->getStream();
+            $currentFileStream->rewind();
+            while (!$currentFileStream->eof())
+            {
+                fwrite($newFileStream, $currentFileStream->read(4096));
+            }
+
         }
         catch (RuntimeException $exception)
         {
             throw $exception;
-        }
-
-        $currentFileStream->rewind();
-        while (!$currentFileStream->eof())
-        {
-            fwrite($newFileStream, $currentFileStream->read(4096));
         }
 
         fclose($newFileStream);

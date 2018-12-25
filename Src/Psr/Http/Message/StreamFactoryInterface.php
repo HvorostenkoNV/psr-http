@@ -20,6 +20,7 @@ interface StreamFactoryInterface
      * The stream SHOULD be created with a temporary resource.
      *
      * @param   string $content             String content with which to populate the stream.
+     *
      * @return  StreamInterface             New stream.
      ************************************************************************/
     public function createStream(string $content = '') : StreamInterface;
@@ -35,6 +36,7 @@ interface StreamFactoryInterface
      *                                      as basis of stream.
      * @param   string  $mode               The mode with which to open
      *                                      the underlying filename/stream.
+     *
      * @return  StreamInterface             Stream.
      * @throws  RuntimeException            File cannot be opened.
      * @throws  InvalidArgumentException    Mode is invalid.
@@ -47,6 +49,7 @@ interface StreamFactoryInterface
      *
      * @param   resource $resource          The PHP resource to use as
      *                                      the basis for the stream.
+     *
      * @return  StreamInterface             Stream.
      ************************************************************************/
     public function createStreamFromResource($resource) : StreamInterface;

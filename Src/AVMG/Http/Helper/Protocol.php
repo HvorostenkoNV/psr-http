@@ -25,6 +25,7 @@ class Protocol
      * Normalize the HTTP protocol version.
      *
      * @param   string $version             HTTP protocol version.
+     *
      * @return  string                      Normalized HTTP protocol version.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/

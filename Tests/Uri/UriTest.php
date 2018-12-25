@@ -18,23 +18,53 @@ class UriTest extends TestCase
     private const
         SPECIAL_CHARS                       =
             [
-                '`', '~', '!', '@', '"', '#', '№',
-                '$', ';', '%', '^', ':', '&', '?',
-                '*', '(', ')', '-', '_', '=', '+',
-                '[', '{', ']', '}', '\\', '|',
-                ',', '<', '.', '>', '/'
+                '`'     => '%60',
+                '\''    => '%27',
+                '"'     => '%22',
+
+                '['     => '%5B',
+                ']'     => '%5D',
+                '{'     => '%7B',
+                '}'     => '%7D',
+                '('     => '%28',
+                ')'     => '%29',
+
+                '\\'    => '%5C',
+                '|'     => '%7C',
+                '/'     => '%2F',
+
+                '+'     => '%2B',
+                '-'     => '-',
+                '='     => '%3D',
+                '*'     => '%2A',
+                '%'     => '%25',
+
+                '^'     => '%5E',
+                '<'     => '%3C',
+                '>'     => '%3E',
+
+                ','     => '%2C',
+                '.'     => '.',
+                ':'     => '%3A',
+                ';'     => '%3B',
+
+                '~'     => '',
+                '!'     => '%21',
+                '@'     => '%40',
+                '#'     => '%23',
+                '№'     => '%E2%84%96',
+                '$'     => '%24',
+                '&'     => '%26',
+                '?'     => '%3F',
+                '_'     => '_'
             ],
         URI_SEPARATING_CHARS                =
             [
                 '/', '?', '&', ':', '@', '#'
             ],
-        URI_UNCODED_CHARS                   =
-            [
-                '-', '_', '.', '~'
-            ],
         SCHEME_ALLOWED_SPECIAL_CHARS        =
             [
-                '+', '-', '.'
+                '+', '.', '-'
             ],
         DOMAIN_NAME_ALLOWED_SPECIAL_CHARS   =
             [
@@ -46,6 +76,17 @@ class UriTest extends TestCase
             [
                 'http'  => 80,
                 'https' => 443
+            ],
+        PATH_ALLOWED_SPECIAL_CHARS          =
+            [
+                '-', '.', '_', '~',
+                '!', '$', '&', '\'',
+                '(', ')', '*', '+',
+                ',', ';', '=', ':'
+            ],
+        QUERY_ALLOWED_SPECIAL_CHARS         =
+            [
+                '*', '-', '.', '_', '~'
             ];
     /** **********************************************************************
      * Testing method "UriTest::getScheme".
@@ -55,6 +96,7 @@ class UriTest extends TestCase
      *
      * @param           string  $uri                URI.
      * @param           string  $expectedScheme     Expected scheme.
+     *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
@@ -79,6 +121,7 @@ class UriTest extends TestCase
      *
      * @param           string  $uri                URI.
      * @param           string  $expectedHost       Expected host.
+     *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
@@ -103,6 +146,7 @@ class UriTest extends TestCase
      *
      * @param           string  $uri                URI.
      * @param           mixed   $expectedPort       Expected port.
+     *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
@@ -127,6 +171,7 @@ class UriTest extends TestCase
      *
      * @param           string  $uri                URI.
      * @param           string  $expectedUserInfo   Expected user info.
+     *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
@@ -151,6 +196,7 @@ class UriTest extends TestCase
      *
      * @param           string  $uri                URI.
      * @param           string  $expectedAuthority  Expected authority.
+     *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
@@ -175,6 +221,7 @@ class UriTest extends TestCase
      *
      * @param           string  $uri                URI.
      * @param           string  $expectedPath       Expected path.
+     *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
@@ -186,7 +233,7 @@ class UriTest extends TestCase
         (
             $expectedPath,
             $caughtPath,
-            "Method \"Uri::getAuthority\" returned unexpected result.\n".
+            "Method \"Uri::getPath\" returned unexpected result.\n".
             "Expected path form uri \"$uri\" is \"$expectedPath\".\n".
             "Caught path is \"$caughtPath\".\n"
         );
@@ -199,6 +246,7 @@ class UriTest extends TestCase
      *
      * @param           string  $uri                URI.
      * @param           string  $expectedQuery      Expected query.
+     *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
@@ -210,7 +258,7 @@ class UriTest extends TestCase
         (
             $expectedQuery,
             $caughtQuery,
-            "Method \"Uri::getAuthority\" returned unexpected result.\n".
+            "Method \"Uri::getQuery\" returned unexpected result.\n".
             "Expected query form uri \"$uri\" is \"$expectedQuery\".\n".
             "Caught query is \"$caughtQuery\".\n"
         );
@@ -222,17 +270,19 @@ class UriTest extends TestCase
      ************************************************************************/
     public function getSchemeDataProvider() : array
     {
-        $schemeValidValues      = $this->getSchemeValidValues();
-        $schemeInvalidValues    = $this->getSchemeInvalidValues();
-        $result                 = [];
+        $schemeValues   = $this->getSchemeValues();
+        $result         = [];
 
-        foreach ($schemeValidValues as $scheme => $schemeExpected)
+        foreach ($schemeValues as $scheme => $schemeExpected)
         {
-            $result[] = ["$scheme://site.com", $schemeExpected];
-        }
-        foreach ($schemeInvalidValues as $scheme)
-        {
-            $result[] = ["$scheme://site.com", ''];
+            if (!is_null($schemeExpected))
+            {
+                $result[] = ["$scheme://site.com", $schemeExpected];
+            }
+            else
+            {
+                $result[] = ["$scheme://site.com", ''];
+            }
         }
 
         $result[] = [':site.com',       ''];
@@ -249,17 +299,19 @@ class UriTest extends TestCase
      ************************************************************************/
     public function getHostDataProvider() : array
     {
-        $hostValidValues    = $this->getHostValidValues();
-        $hostInvalidValues  = $this->getHostInvalidValues();
-        $result             = [];
+        $hostValues = $this->getHostValues();
+        $result     = [];
 
-        foreach ($hostValidValues as $host => $hostExpected)
+        foreach ($hostValues as $host => $hostExpected)
         {
-            $result[] = ["http://$host", $hostExpected];
-        }
-        foreach ($hostInvalidValues as $host)
-        {
-            $result[] = ["http://$host", ''];
+            if (!is_null($hostExpected))
+            {
+                $result[] = ["http://$host", $hostExpected];
+            }
+            else
+            {
+                $result[] = ["http://$host", ''];
+            }
         }
 
         $result[] = ['://site.com',     'site.com'];
@@ -276,18 +328,21 @@ class UriTest extends TestCase
      ************************************************************************/
     public function getPortDataProvider() : array
     {
-        $portValidValues    = $this->getPortValidValues();
-        $portInvalidValues  = $this->getPortInvalidValues();
-        $result             = [];
+        $portValues = $this->getPortValues();
+        $result     = [];
 
-        foreach ($portValidValues as $port)
+        foreach ($portValues as $port => $portExpected)
         {
-            $result[] = ["http://site.com:$port", $port];
+            if (!is_null($portExpected))
+            {
+                $result[] = ["http://site.com:$port", $portExpected];
+            }
+            else
+            {
+                $result[] = ["http://site.com:$port", null];
+            }
         }
-        foreach ($portInvalidValues as $port)
-        {
-            $result[] = ["http://site.com:$port", null];
-        }
+
         foreach (self::SCHEMES_STANDARD_PORTS as $scheme => $port)
         {
             $result[] = ["$scheme://site.com:$port", null];
@@ -305,27 +360,21 @@ class UriTest extends TestCase
      ************************************************************************/
     public function getUserInfoDataProvider() : array
     {
-        $loginValidValues       = $this->getUserLoginValidValues();
-        $loginInvalidValues     = $this->getUserLoginInvalidValues();
-        $passwordValidValues    = $this->getUserPasswordValidValues();
-        $passwordInvalidValues  = $this->getUserPasswordInvalidValues();
-        $result                 = [];
+        $userInfoValues = $this->getUserInfoValues();
+        $result         = [];
 
-        foreach ($loginValidValues as $login => $loginExpected)
+        foreach ($userInfoValues as $value => $valueExpected)
         {
-            $result[] = ["$login@site.com", $loginExpected];
-        }
-        foreach ($loginInvalidValues as $login)
-        {
-            $result[] = ["$login@site.com", ''];
-        }
-        foreach ($passwordValidValues as $password => $passwordExpected)
-        {
-            $result[] = ["user:$password@site.com", "user:$passwordExpected"];
-        }
-        foreach ($passwordInvalidValues as $password)
-        {
-            $result[] = ["user:$password@site.com", 'user'];
+            if (!is_null($valueExpected))
+            {
+                $result[]   = ["$value@site.com",         $valueExpected];
+                $result[]   = ["user:$value@site.com",    "user:$valueExpected"];
+            }
+            else
+            {
+                $result[]   = ["$value@site.com",         ''];
+                $result[]   = ["user:$value@site.com",    'user'];
+            }
         }
 
         $result[] = ['user:password@site.com',  'user:password'];
@@ -341,81 +390,79 @@ class UriTest extends TestCase
      ************************************************************************/
     public function getAuthorityDataProvider() : array
     {
-        $hostValidValues        = $this->getHostValidValues();
-        $hostInvalidValues      = $this->getHostInvalidValues();
-        $portValidValues        = $this->getPortValidValues();
-        $portInvalidValues      = $this->getPortInvalidValues();
-        $loginValidValues       = $this->getUserLoginValidValues();
-        $loginInvalidValues     = $this->getUserLoginInvalidValues();
-        $passwordValidValues    = $this->getUserPasswordValidValues();
-        $passwordInvalidValues  = $this->getUserPasswordInvalidValues();
-        $result                 = [];
+        $hostValues     = $this->getHostValues();
+        $portValues     = $this->getPortValues();
+        $userInfoValues = $this->getUserInfoValues();
+        $result         = [];
 
-        foreach ($hostValidValues as $host => $hostExpected)
+        foreach ($hostValues as $host => $hostExpected)
         {
-            $result[] =
-                [
-                    "http://user:password@$host:123/path/",
-                    "user:password@$hostExpected:123"
-                ];
-        }
-        foreach ($hostInvalidValues as $host)
-        {
-            $result[] =
-                [
-                    "http://user:password@$host:123/path/",
-                    'user:password'
-                ];
+            if (!is_null($hostExpected))
+            {
+                $result[] =
+                    [
+                        "http://user:password@$host:123/path/",
+                        "user:password@$hostExpected:123"
+                    ];
+            }
+            else
+            {
+                $result[] =
+                    [
+                        "http://user:password@$host:123/path/",
+                        'user:password'
+                    ];
+            }
         }
 
-        foreach ($portValidValues as $port)
+        foreach ($portValues as $port => $portExpected)
         {
-            $result[] =
-                [
-                    "http://user:password@site.com:$port/path/",
-                    "user:password@site.com:$port"
-                ];
-        }
-        foreach ($portInvalidValues as $port)
-        {
-            $result[] =
-                [
-                    "http://user:password@site.com:$port/path/",
-                    'user:password@site.com'
-                ];
+            if (!is_null($portExpected))
+            {
+                $result[] =
+                    [
+                        "http://user:password@site.com:$port/path/",
+                        "user:password@site.com:$portExpected"
+                    ];
+            }
+            else
+            {
+                $result[] =
+                    [
+                        "http://user:password@site.com:$port/path/",
+                        'user:password@site.com'
+                    ];
+            }
         }
 
-        foreach ($loginValidValues as $login => $loginExpected)
+        foreach ($userInfoValues as $value => $valueExpected)
         {
-            $result[] =
-                [
-                    "http://$login:password@site.com:123/path/",
-                    "$loginExpected:password@site.com:123"
-                ];
-        }
-        foreach ($loginInvalidValues as $login)
-        {
-            $result[] =
-                [
-                    "http://$login:password@site.com:123/path/",
-                    'site.com:123'
-                ];
-        }
-        foreach ($passwordValidValues as $password => $passwordExpected)
-        {
-            $result[] =
-                [
-                    "http://user:$password@site.com:123/path/",
-                    "user:$passwordExpected@site.com:123"
-                ];
-        }
-        foreach ($passwordInvalidValues as $password)
-        {
-            $result[] =
-                [
-                    "http://user:$password@site.com:123/path/",
-                    'user@site.com:123'
-                ];
+            if (!is_null($valueExpected))
+            {
+                $result[] =
+                    [
+                        "http://$value:password@site.com:123/path/",
+                        "$valueExpected:password@site.com:123"
+                    ];
+                $result[] =
+                    [
+                        "http://user:$value@site.com:123/path/",
+                        "user:$valueExpected@site.com:123"
+                    ];
+            }
+            else
+            {
+                $result[] =
+                    [
+                        "http://$value:password@site.com:123/path/",
+                        'site.com:123'
+                    ];
+                $result[] =
+                    [
+                        "http://user:$value@site.com:123/path/",
+                        'user@site.com:123'
+                    ];
+            }
         }
 
         $result[] =
@@ -453,21 +500,22 @@ class UriTest extends TestCase
      ************************************************************************/
     public function getPathDataProvider() : array
     {
-        $pathValidValues    = $this->getPathValidValues();
-        $pathInvalidValues  = $this->getPathInvalidValues();
-        $result             = [];
+        $pathValues = $this->getPathValues();
+        $result     = [];
 
-        foreach ($pathValidValues as $path => $pathExpected)
+        foreach ($pathValues as $path => $pathExpected)
         {
-            $result[] = ["http://site.com$path", $pathExpected];
-        }
-        foreach ($pathInvalidValues as $path)
-        {
-            $result[] = ["http://site.com$path", ''];
+            if (!is_null($pathExpected))
+            {
+                $result[] = ["http://site.com$path", $pathExpected];
+            }
+            else
+            {
+                $result[] = ["http://site.com$path", ''];
+            }
         }
 
         $result[] = ['http://site.com//path',       '//path'];
-        $result[] = ['http://site.com/path/',       '/path/'];
         $result[] = ['http://site.com',             ''];
         $result[] = ['http://site.com?key=value',   ''];
         $result[] = ['http://site.com/',            '/'];
@@ -482,17 +530,19 @@ class UriTest extends TestCase
      ************************************************************************/
     public function getQueryDataProvider() : array
     {
-        $queryValidValues   = $this->getQueryValidValues();
-        $queryInvalidValues = $this->getQueryInvalidValues();
-        $result             = [];
+        $queryValues    = $this->getQueryValues();
+        $result         = [];
 
-        foreach ($queryValidValues as $query => $queryExpected)
+        foreach ($queryValues as $query => $queryExpected)
         {
-            $result[] = ["http://site.com?$query", $queryExpected];
-        }
-        foreach ($queryInvalidValues as $query)
-        {
-            $result[] = ["http://site.com?$query", ''];
+            if (!is_null($queryExpected))
+            {
+                $result[] = ["http://site.com?$query", $queryExpected];
+            }
+            else
+            {
+                $result[] = ["http://site.com?$query", ''];
+            }
         }
 
         $result[] = ['http://site.com?',        ''];
@@ -502,369 +552,393 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Get scheme valid values set.
+     * Get scheme values map.
      *
-     * @return  array                               Scheme valid values set.
+     * @return  array                               Scheme values map, where key is raw value
+     *                                              and value is value expected.
      ************************************************************************/
-    private function getSchemeValidValues() : array
+    private function getSchemeValues() : array
     {
-        $result =
-            [
-                'http'      => 'http',
-                'Http'      => 'http',
-                'HTTP'      => 'http',
-                'https'     => 'https',
-                'ftp'       => 'ftp',
-                'scheme'    => 'scheme',
-                'scheme10'  => 'scheme10',
-                'scheme '   => 'scheme',
-                ' scheme'   => 'scheme'
-            ];
-
-        foreach (self::SCHEME_ALLOWED_SPECIAL_CHARS as $char)
-        {
-            $schemes["scheme{$char}"] = "scheme{$char}";
-        }
-
-        return $result;
-    }
-    /** **********************************************************************
-     * Get scheme invalid values set.
-     *
-     * @return  array                               Scheme invalid values set.
-     ************************************************************************/
-    private function getSchemeInvalidValues() : array
-    {
-        $result =
-            [
-                '',
-                '10scheme',
-                's c h e m e'
-            ];
-
-        foreach (self::SCHEME_ALLOWED_SPECIAL_CHARS as $char)
-        {
-            $result[] = "{$char}scheme";
-        }
-        foreach (self::SPECIAL_CHARS as $char)
-        {
-            if
-            (
-                !in_array($char, self::URI_SEPARATING_CHARS) &&
-                !in_array($char, self::SCHEME_ALLOWED_SPECIAL_CHARS)
-            )
+        $allowedSpecialChars    = self::SCHEME_ALLOWED_SPECIAL_CHARS;
+        $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
+        $incorrectSpecialChars  = array_keys(self::SPECIAL_CHARS);
+        $incorrectSpecialChars  = array_filter
+        (
+            $incorrectSpecialChars,
+            function($char) use ($allowedSpecialChars,  $technicalSpecialChars)
             {
-                $result[] = "scheme{$char}";
-                $result[] = "{$char}scheme";
+                return
+                    !in_array($char, $allowedSpecialChars) &&
+                    !in_array($char, $technicalSpecialChars);
             }
+        );
+        $result                 =
+            [
+                'http'          => 'http',
+                'https'         => 'https',
+                'ftp'           => 'ftp',
+                'scheme'        => 'scheme',
+
+                'Http'          => 'http',
+                'HTTP'          => 'http',
+                'hTtP'          => 'http',
+
+                'scheme10'      => 'scheme10',
+                '10scheme'      => null,
+
+                'scheme '       => 'scheme',
+                ' scheme'       => 'scheme',
+                's c h e m e'   => null
+            ];
+
+        foreach ($allowedSpecialChars as $char)
+        {
+            $schemes["scheme{$char}"]   = "scheme{$char}";
+            $schemes["{$char}scheme"]   = null;
+        }
+        foreach ($incorrectSpecialChars as $char)
+        {
+            $schemes["scheme{$char}"]   = null;
+            $schemes["{$char}scheme"]   = null;
         }
 
         return $result;
     }
     /** **********************************************************************
-     * Get host valid values set.
+     * Get host values map.
      *
-     * @return  array                               Host valid values set.
+     * @return  array                               Host values map, where key is raw value
+     *                                              and value is value expected.
      ************************************************************************/
-    private function getHostValidValues() : array
+    private function getHostValues() : array
     {
-        $result =
+        return array_merge
+        (
+            $this->getDomainNamesValues(),
+            $this->getIpAddressesV4Values(),
+            $this->getIpAddressesV6Values()
+        );
+    }
+    /** **********************************************************************
+     * Get domain names values map.
+     *
+     * @return  array                               Domain names values map, where key is raw value
+     *                                              and value is value expected.
+     ************************************************************************/
+    private function getDomainNamesValues() : array
+    {
+        $allowedSpecialChars    = self::DOMAIN_NAME_ALLOWED_SPECIAL_CHARS;
+        $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
+        $incorrectSpecialChars  = array_keys(self::SPECIAL_CHARS);
+        $incorrectSpecialChars  = array_filter
+        (
+            $incorrectSpecialChars,
+            function($char) use ($allowedSpecialChars,  $technicalSpecialChars)
+            {
+                return
+                    !in_array($char, $allowedSpecialChars) &&
+                    !in_array($char, $technicalSpecialChars);
+            }
+        );
+        $result                 =
             [
                 'site'          => 'site',
-                'Site'          => 'site',
-                'SITE'          => 'site',
-                'site '         => 'site',
-                ' site'         => 'site',
                 'site.com'      => 'site.com',
                 'www.site.com'  => 'www.site.com',
+
+                'Site'          => 'site',
+                'SITE'          => 'site',
+                'sItE'          => 'site',
+
                 'site10.com'    => 'site10.com',
                 '10site.com'    => '10site.com',
-                '10.10.1.1'     => '10.10.1.1',
-                '10.10.1'       => '10.10.1',
-                '10.10'         => '10.10',
-                '10'            => '10'
+
+                'site '         => 'site',
+                ' site'         => 'site',
+                's i t e'       => null
             ];
 
-        foreach (self::DOMAIN_NAME_ALLOWED_SPECIAL_CHARS as $char)
+        foreach ($allowedSpecialChars as $char)
         {
-            $result["site{$char}.com"] = "site{$char}.com";
+            $result["site{$char}.com"]  = "site{$char}.com";
+            $result["{$char}site.com"]  = null;
+        }
+        foreach ($incorrectSpecialChars as $char)
+        {
+            $result["site{$char}.com"]  = null;
+            $result["{$char}site.com"]  = null;
         }
 
         return $result;
     }
     /** **********************************************************************
-     * Get host invalid values set.
+     * Get ip addresses v4 values map.
      *
-     * @return  array                               Host invalid values set.
+     * @return  array                               Ip addresses v4 values map, where key is raw value
+     *                                              and value is value expected.
      ************************************************************************/
-    private function getHostInvalidValues() : array
+    private function getIpAddressesV4Values() : array
     {
-        $result =
+        return
             [
-                's i t e'
+                '127.0.0.1'         => '127.0.0.1',
+                '1.0.0.1'           => '1.0.0.1',
+                '255.255.255.255'   => '255.255.255.255',
+
+                '01.0.0.1'          => '1.0.0.1',
+                '001.0.0.1'         => '1.0.0.1',
+                '010.0.0.1'         => '10.0.0.1',
+
+                '255.255.255.256'   => null,
+                '255.255.255.999'   => null,
+                '255.255.255.-1'    => null,
+
+                '0.0.0.0.1'         => null,
+                '0.0.0.0.0.1'       => null,
+                '0.0.0.1.'          => null,
+                '.0.0.0.1'          => null
+            ];
+    }
+    /** **********************************************************************
+     * Get ip addresses v6 values map.
+     *
+     * @return  array                               Ip addresses v6 values map, where key is raw value
+     *                                              and value is value expected.
+     ************************************************************************/
+    private function getIpAddressesV6Values() : array
+    {
+        return
+            [
+                '1234:5678:1357:2468:aabb:ccdd:eeff:ABCD'   => '1234:5678:1357:2468:aabb:ccdd:eeff:ABCD',
+                '1234:123:12:1:abcd:ABCD:AbCd:FF'           => '1234:123:12:1:abcd:ABCD:AbCd:FF',
+
+                '1234:123::'                                => '1234:123::',
+                '::1234:123'                                => '::1234:123',
+                '1234:123::eeff:ABCD'                       => '1234:123::eeff:ABCD',
+                '::'                                        => '::',
+
+                '01:5678:1357:2468:aabb:ccdd:eeff:ABCD'     => '1:5678:1357:2468:aabb:ccdd:eeff:ABCD',
+                '1234:5678:1357:2468:aabb:ccdd:0:000'       => '1234:5678:1357:2468:aabb:ccdd::',
+                '00:0000:1357:2468:aabb:ccdd:eeff:ABCD'     => '::1357:2468:aabb:ccdd:eeff:ABCD',
+                '1234:5678:0:0:0:0:eeff:ABCD'               => '1234:5678::eeff:ABCD',
+
+                'abg::'                                     => null,
+                'abcde::'                                   => null,
+                '12345::'                                   => null,
+
+                '1111:2222:3333:aaaa:bbbb:cccc:1.0.0.1'     => '1111:2222:3333:aaaa:bbbb:cccc:1.0.0.1',
+                '1111:2222:3333:aaaa::1.0.0.1'              => '1111:2222:3333:aaaa::1.0.0.1',
+                '::3333:aaaa:bbbb:cccc:1.0.0.1'             => '::3333:aaaa:bbbb:cccc:1.0.0.1',
+                '1111:2222::bbbb:cccc:1.0.0.1'              => '1111:2222::bbbb:cccc:1.0.0.1',
+
+                '1111:2222:3333:aaaa:bbbb:cccc:1.0.0.256'   => null,
+                '1111:2222:3333:aaaa:bbbb:cccc:1.0.0.1.2'   => null,
+                '1111:2222:3333:aaaa:bbbb:gggg:1.0.0.1'     => null,
+                '1111:2222:3333:aaaa:bbbb:cccc:::1.0.0.1'   => null
+            ];
+    }
+    /** **********************************************************************
+     * Get port values map.
+     *
+     * @return  array                               Port values map, where key is raw value
+     *                                              and value is value expected.
+     ************************************************************************/
+    private function getPortValues() : array
+    {
+        $minAvailableValue  = self::PORT_MIN_VALUE;
+        $maxAvailableValue  = self::PORT_MAX_VALUE;
+        $result             =
+            [
+                $minAvailableValue      => $minAvailableValue,
+                $maxAvailableValue      => $maxAvailableValue,
+
+                $minAvailableValue - 1  => null,
+                $maxAvailableValue + 1  => null,
+
+                'somePort'              => null
             ];
 
-        foreach (self::DOMAIN_NAME_ALLOWED_SPECIAL_CHARS as $char)
+        for ($index = 5; $index > 0; $index--)
         {
-            $result[] = "{$char}site.com";
+            $value          = rand($minAvailableValue, $maxAvailableValue);
+            $result[$value] = $value;
         }
-        foreach (self::SPECIAL_CHARS as $char)
+        for ($index = 5; $index > 0; $index--)
         {
-            if
-            (
-                !in_array($char, self::URI_SEPARATING_CHARS) &&
-                !in_array($char, self::DOMAIN_NAME_ALLOWED_SPECIAL_CHARS)
-            )
-            {
-                $result[] = "site{$char}.com";
-                $result[] = "{$char}site.com";
-            }
+            $value          = rand($minAvailableValue - 100, $minAvailableValue - 1);
+            $result[$value] = null;
+        }
+        for ($index = 5; $index > 0; $index--)
+        {
+            $value          = rand($maxAvailableValue + 1, $maxAvailableValue + 100);
+            $result[$value] = null;
         }
 
         return $result;
     }
     /** **********************************************************************
-     * Get user login valid values set.
+     * Get user info values map.
      *
-     * @return  array                               User login valid values set.
+     * @return  array                               User info values map, where key is raw value
+     *                                              and value is value expected.
      ************************************************************************/
-    private function getUserLoginValidValues() : array
+    private function getUserInfoValues() : array
     {
-        $result =
+        $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
+        $otherSpecialChars      = array_keys(self::SPECIAL_CHARS);
+        $otherSpecialChars      = array_filter
+        (
+            $otherSpecialChars,
+            function($char) use ($technicalSpecialChars)
+            {
+                return !in_array($char, $technicalSpecialChars);
+            }
+        );
+        $result         =
             [
                 'user'      => 'user',
-                'User'      => 'User',
-                'USER'      => 'USER',
-                'user '     => 'user%20',
-                ' user'     => '%20user',
-                'u s e r'   => 'u%20s%20e%20r',
-                'user10'    => 'user10',
-                '10user'    => '10user'
+                'login'     => 'login',
+                'password'  => 'password',
+
+                'Value'     => 'Value',
+                'VALUE'     => 'VALUE',
+                'vAlUe'     => 'vAlUe',
+
+                'value10'   => 'value10',
+                '10value'   => '10value',
+
+                'value '    => 'value%20',
+                ' value'    => '%20value',
+                'v a l u e' => 'v%20a%20l%20u%20e'
             ];
 
-        foreach (self::SPECIAL_CHARS as $char)
+        foreach ($otherSpecialChars as $char)
         {
-            if (!in_array($char, self::URI_SEPARATING_CHARS))
+            $charEncoded                    = self::SPECIAL_CHARS[$char];
+            $result["value{$charEncoded}"]  = "value{$charEncoded}";
+        }
+        foreach ($otherSpecialChars as $char)
+        {
+            $charEncoded                    = self::SPECIAL_CHARS[$char];
+            $result["value{$char}"]         = "value{$charEncoded}";
+            $result["value{$charEncoded}"]  = "value{$charEncoded}";
+        }
+
+        return $result;
+    }
+    /** **********************************************************************
+     * Get path values map.
+     *
+     * @return  array                               Path values map, where key is raw value
+     *                                              and value is value expected.
+     ************************************************************************/
+    private function getPathValues() : array
+    {
+        $allowedSpecialChars    = self::PATH_ALLOWED_SPECIAL_CHARS;
+        $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
+        $otherSpecialChars      = array_keys(self::SPECIAL_CHARS);
+        $otherSpecialChars      = array_filter
+        (
+            $otherSpecialChars,
+            function($char) use ($allowedSpecialChars, $technicalSpecialChars)
             {
-                $charEncoded = urlencode($char);
-
-                if (in_array($char, self::URI_UNCODED_CHARS))
-                {
-                    $result["user{$char}"]          = "user{$char}";
-                    $result["user{$charEncoded}"]   = "user{$char}";
-                }
-                else
-                {
-                    $result["user{$char}"]          = "user{$charEncoded}";
-                    $result["user{$charEncoded}"]   = "user{$charEncoded}";
-                }
+                return
+                    !in_array($char, $allowedSpecialChars) &&
+                    !in_array($char, $technicalSpecialChars);
             }
-        }
-
-        return $result;
-    }
-    /** **********************************************************************
-     * Get user password invalid values set.
-     *
-     * @return  array                               User login invalid values set.
-     ************************************************************************/
-    private function getUserLoginInvalidValues() : array
-    {
-        return [];
-    }
-    /** **********************************************************************
-     * Get user login valid values set.
-     *
-     * @return  array                               User password valid values set.
-     ************************************************************************/
-    private function getUserPasswordValidValues() : array
-    {
-        $result =
-            [
-                'password'          => 'password',
-                'Password'          => 'Password',
-                'PASSWORD'          => 'PASSWORD',
-                'password '         => 'password%20',
-                ' password'         => '%20password',
-                'p a s s w o r d'   => 'p%20a%20s%20s%20w%20o%20r%20d',
-                'password10'        => 'password10',
-                '10password'        => '10password'
-            ];
-
-        foreach (self::SPECIAL_CHARS as $char)
-        {
-            if (!in_array($char, self::URI_SEPARATING_CHARS))
-            {
-                $charEncoded = urlencode($char);
-
-                if (in_array($char, self::URI_UNCODED_CHARS))
-                {
-                    $result["password{$char}"]          = "password{$char}";
-                    $result["password{$charEncoded}"]   = "password{$char}";
-                }
-                else
-                {
-                    $result["password{$char}"]          = "password{$charEncoded}";
-                    $result["password{$charEncoded}"]   = "password{$charEncoded}";
-                }
-            }
-        }
-
-        return $result;
-    }
-    /** **********************************************************************
-     * Get user password invalid values set.
-     *
-     * @return  array                               User password invalid values set.
-     ************************************************************************/
-    private function getUserPasswordInvalidValues() : array
-    {
-        return [''];
-    }
-    /** **********************************************************************
-     * Get port valid values set.
-     *
-     * @return  array                               Port valid values set.
-     ************************************************************************/
-    private function getPortValidValues() : array
-    {
-        $result =
-            [
-                self::PORT_MIN_VALUE,
-                self::PORT_MAX_VALUE
-            ];
-
-        for ($index = 10; $index > 0; $index--)
-        {
-            $result[] = rand(self::PORT_MIN_VALUE, self::PORT_MAX_VALUE);
-        }
-
-        return $result;
-    }
-    /** **********************************************************************
-     * Get port invalid values set.
-     *
-     * @return  array                               Port invalid values set.
-     ************************************************************************/
-    private function getPortInvalidValues() : array
-    {
-        $result =
-            [
-                self::PORT_MIN_VALUE - 1,
-                self::PORT_MAX_VALUE + 1,
-                'someString'
-            ];
-
-        for ($index = 5; $index > 0; $index--)
-        {
-            $result[] = rand(self::PORT_MIN_VALUE - 100, self::PORT_MIN_VALUE - 1);
-        }
-        for ($index = 5; $index > 0; $index--)
-        {
-            $result[] = rand(self::PORT_MAX_VALUE + 1, self::PORT_MAX_VALUE + 100);
-        }
-
-        return $result;
-    }
-    /** **********************************************************************
-     * Get path valid values set.
-     *
-     * @return  array                               Path valid values set.
-     ************************************************************************/
-    private function getPathValidValues() : array
-    {
-        $result =
+        );
+        $result             =
             [
                 '/path/'                    => '/path/',
+                '/path1/path2/'             => '/path1/path2/',
+                '/path1/path2/path3-path4'  => '/path1/path2/path3-path4',
+
                 '/Path/'                    => '/Path/',
                 '/PATH/'                    => '/PATH/',
+                '/pAtH/'                    => '/pAtH/',
+
                 '/path /'                   => '/path%20/',
                 '/ path/'                   => '/%20path/',
-                '/p a t h/'                 => '/p%20a%20t%20h/',
-                '/path1/path2/'             => '/path1/path2/',
-                '/path1/path2/path3-path4'  => '/path1/path2/path3-path4'
+                '/p a t h/'                 => '/p%20a%20t%20h/'
             ];
 
-        foreach (self::SPECIAL_CHARS as $char)
+        foreach ($allowedSpecialChars as $char)
         {
-            if (!in_array($char, self::URI_SEPARATING_CHARS))
-            {
-                $charEncoded = urlencode($char);
-
-                if (in_array($char, self::URI_UNCODED_CHARS))
-                {
-                    $result["/path{$char}/"]        = "/path{$char}/";
-                    $result["/path{$charEncoded}/"] = "/path{$char}/";
-                }
-                else
-                {
-                    $result["/path{$char}/"]        = "/path{$charEncoded}/";
-                    $result["/path{$charEncoded}/"] = "/path{$charEncoded}/";
-                }
-            }
+            $result["/path{$char}/"] = "/path{$char}/";
+        }
+        foreach ($technicalSpecialChars as $char)
+        {
+            $charEncoded                    = urlencode($char);
+            $result["/path{$charEncoded}/"] = "/path{$charEncoded}/";
+        }
+        foreach ($otherSpecialChars as $char)
+        {
+            $charEncoded                    = urlencode($char);
+            $result["/path{$char}/"]        = "/path{$charEncoded}/";
+            $result["/path{$charEncoded}/"] = "/path{$charEncoded}/";
         }
 
         return $result;
     }
     /** **********************************************************************
-     * Get path invalid values set.
+     * Get query values map.
      *
-     * @return  array                               Path invalid values set.
+     * @return  array                               Query values map, where key is raw value
+     *                                              and value is value expected.
      ************************************************************************/
-    private function getPathInvalidValues() : array
+    private function getQueryValues() : array
     {
-        return [];
-    }
-    /** **********************************************************************
-     * Get query valid values set.
-     *
-     * @return  array                               Query valid values set.
-     ************************************************************************/
-    private function getQueryValidValues() : array
-    {
-        $result =
+        $allowedSpecialChars    = self::QUERY_ALLOWED_SPECIAL_CHARS;
+        $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
+        $otherSpecialChars      = array_keys(self::SPECIAL_CHARS);
+        $otherSpecialChars      = array_filter
+        (
+            $otherSpecialChars,
+            function($char) use ($allowedSpecialChars, $technicalSpecialChars)
+            {
+                return
+                    !in_array($char, $allowedSpecialChars) &&
+                    !in_array($char, $technicalSpecialChars);
+            }
+        );
+        $result             =
             [
-                'key'                       => 'key',
-                'Key'                       => 'Key',
-                'KEY'                       => 'KEY',
-                'key='                      => 'key',
-                'key=value'                 => 'key=value',
-                'Key=Value'                 => 'Key=Value',
-                'key1=value2&'              => 'key1=value2',
-                'key1=value2&key2'          => 'key1=value2&key2',
-                'key1=value2&key2='         => 'key1=value2&key2',
-                'key1=value2&key2=value2'   => 'key1=value2&key2=value2',
-                'key1=value2&=value2'       => 'key1=value2'
+                'key'                           => 'key',
+                'value'                         => 'value',
+
+                'Key'                           => 'Key',
+                'KEY'                           => 'KEY',
+                'kEy'                           => 'kEy',
+
+                'key='                          => 'key',
+                'key=value'                     => 'key=value',
+                'Key=Value'                     => 'Key=Value',
+
+                'key1=value2&key2'              => 'key1=value2&key2',
+                'key1=value2&key2='             => 'key1=value2&key2',
+                'key1=value2&key2=value2'       => 'key1=value2&key2=value2',
+
+                'key1=value2&'                  => 'key1=value2',
+                'key1=value2&=value2'           => 'key1=value2',
+                'key1==value2&&key2===value2'   => 'key1=value2&key2=value2'
             ];
 
-        foreach (self::SPECIAL_CHARS as $char)
+        foreach ($allowedSpecialChars as $char)
         {
-            if (!in_array($char, self::URI_SEPARATING_CHARS))
-            {
-                $charEncoded = urlencode($char);
-
-                if (in_array($char, self::URI_UNCODED_CHARS))
-                {
-                    $result["key{$char}=value{$char}"]                  = "key{$char}=value{$char}";
-                    $result["key{$charEncoded}=value{$charEncoded}"]    = "key{$char}=value{$char}";
-                }
-                else
-                {
-                    $result["key{$char}=value{$char}"]                  = "key{$charEncoded}=value{$charEncoded}";
-                    $result["key{$charEncoded}=value{$charEncoded}"]    = "key{$charEncoded}=value{$charEncoded}";
-                }
-            }
+            $result["{$char}={$char}"] = "{$char}={$char}";
+        }
+        foreach ($technicalSpecialChars as $char)
+        {
+            $charEncoded                                = urlencode($char);
+            $result["{$charEncoded}={$charEncoded}"]    = "{$charEncoded}={$charEncoded}";
+        }
+        foreach ($otherSpecialChars as $char)
+        {
+            $charEncoded                                = urlencode($char);
+            $result["{$char}={$char}"]                  = "{$charEncoded}={$charEncoded}";
+            $result["{$charEncoded}={$charEncoded}"]    = "{$charEncoded}={$charEncoded}";
         }
 
         return $result;
-    }
-    /** **********************************************************************
-     * Get query invalid values set.
-     *
-     * @return  array                               Query invalid values set.
-     ************************************************************************/
-    private function getQueryInvalidValues() : array
-    {
-        return [];
     }
 }

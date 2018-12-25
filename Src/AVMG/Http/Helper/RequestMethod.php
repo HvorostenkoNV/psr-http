@@ -28,6 +28,7 @@ class RequestMethod
      * Normalize the HTTP request method.
      *
      * @param   string $method              HTTP request method.
+     *
      * @return  string                      Normalized HTTP request method.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/

@@ -329,6 +329,7 @@ class Uri implements UriInterface
      * An empty scheme is equivalent to removing the scheme.
      *
      * @param   string $scheme              Scheme to use with the new instance.
+     *
      * @return  UriInterface                Instance with the specified scheme.
      * @throws  InvalidArgumentException    Invalid or unsupported schemes.
      ************************************************************************/
@@ -358,6 +359,7 @@ class Uri implements UriInterface
      *
      * @param   string  $user               User name to use for authority.
      * @param   string  $password           Password associated with $user.
+     *
      * @return  UriInterface                Instance with the specified user information.
      ************************************************************************/
     public function withUserInfo(string $user, string $password = '') : UriInterface
@@ -393,6 +395,7 @@ class Uri implements UriInterface
      * An empty host value is equivalent to removing the host.
      *
      * @param   string $host                Hostname to use with the new instance.
+     *
      * @return  UriInterface                Instance with the specified host.
      * @throws  InvalidArgumentException    Invalid hostname.
      ************************************************************************/
@@ -424,6 +427,7 @@ class Uri implements UriInterface
      *
      * @param   int $port                   The port to use with the new instance;
      *                                      a zero value removes the port information.
+     *
      * @return  UriInterface                Instance with the specified port.
      * @throws  InvalidArgumentException    Invalid port.
      ************************************************************************/
@@ -460,6 +464,7 @@ class Uri implements UriInterface
      * Implementations ensure the correct encoding as outlined in getPath().
      *
      * @param   string $path                Path to use with the new instance.
+     *
      * @return  UriInterface                Instance with the specified path.
      * @throws  InvalidArgumentException    Invalid paths.
      ************************************************************************/
@@ -489,6 +494,7 @@ class Uri implements UriInterface
      * An empty query string value is equivalent to removing the query string.
      *
      * @param   string $query               Query string to use with the new instance.
+     *
      * @return  UriInterface                Instance with the specified query string.
      * @throws  InvalidArgumentException    Invalid query string.
      ************************************************************************/
@@ -518,6 +524,7 @@ class Uri implements UriInterface
      * An empty fragment value is equivalent to removing the fragment.
      *
      * @param   string $fragment            Fragment to use with the new instance.
+     *
      * @return  UriInterface                Instance with the specified URI fragment.
      ************************************************************************/
     public function withFragment(string $fragment) : UriInterface
@@ -583,6 +590,7 @@ class Uri implements UriInterface
      * Parse URL and get array data.
      *
      * @param   string $uri                 Uri.
+     *
      * @return  array                       URL parsed data.
      ************************************************************************/
     private function parseUrl(string $uri = '')
@@ -602,42 +610,42 @@ class Uri implements UriInterface
 
         if (strpos($uriFiltered, '://') !== false)
         {
-            $explode            = explode('://', $uriFiltered);
-            $uriData['scheme']  = array_shift($explode);
-            $uriFiltered        = implode('://', $explode);
+            $explode            = explode('://', $uriFiltered, 2);
+            $uriData['scheme']  = $explode[0];
+            $uriFiltered        = $explode[1];
         }
         if (strpos($uriFiltered, '#') !== false)
         {
-            $explode                = explode('#', $uriFiltered);
-            $uriData['fragment']    = array_pop($explode);
-            $uriFiltered            = implode('#', $explode);
+            $explode                = explode('#', $uriFiltered, 2);
+            $uriData['fragment']    = $explode[1];
+            $uriFiltered            = $explode[0];
         }
         if (strpos($uriFiltered, '?') !== false)
         {
-            $explode            = explode('?', $uriFiltered);
-            $uriData['query']   = array_pop($explode);
-            $uriFiltered        = implode('?', $explode);
+            $explode            = explode('?', $uriFiltered, 2);
+            $uriData['query']   = $explode[1];
+            $uriFiltered        = $explode[0];
         }
         if (strpos($uriFiltered, '@') !== false)
         {
-            $explode            = explode('@', $uriFiltered);
-            $userInfo           = array_shift($explode);
+            $explode            = explode('@', $uriFiltered, 2);
+            $userInfo           = $explode[0];
             $userInfoExplode    = explode(':', $userInfo);
             $uriData['user']    = $userInfoExplode[0];
             $uriData['pass']    = $userInfoExplode[1] ?? '';
-            $uriFiltered        = implode('@', $explode);
+            $uriFiltered        = $explode[1];
         }
         if (strpos($uriFiltered, '/') !== false)
         {
-            $explode            = explode('/', $uriFiltered);
-            $uriFiltered        = array_shift($explode);
-            $uriData['path']    = '/'.implode('/', $explode);
+            $explode            = explode('/', $uriFiltered, 2);
+            $uriData['path']    = '/'.$explode[1];
+            $uriFiltered        = $explode[0];
         }
         if (strpos($uriFiltered, ':') !== false)
         {
-            $explode            = explode(':', $uriFiltered);
-            $uriData['port']    = array_pop($explode);
-            $uriFiltered        = implode(':', $explode);
+            $explode            = explode(':', $uriFiltered, 2);
+            $uriData['port']    = $explode[1];
+            $uriFiltered        = $explode[0];
         }
 
         $uriData['host'] = $uriFiltered;

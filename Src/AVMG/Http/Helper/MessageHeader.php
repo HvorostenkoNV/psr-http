@@ -16,6 +16,7 @@ class MessageHeader
      * Normalize header name.
      *
      * @param   string $name                Header name.
+     *
      * @return  string                      Normalized header name.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
@@ -32,6 +33,7 @@ class MessageHeader
      * Normalize header value.
      *
      * @param   mixed $value                Header value.
+     *
      * @return  string                      Normalized header value.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/

@@ -19,6 +19,7 @@ class UriFactory implements UriFactoryInterface
      * Create a new URI.
      *
      * @param   string $uri                 The URI to parse.
+     *
      * @return  UriInterface                URI.
      ************************************************************************/
     public function createUri(string $uri = '') : UriInterface

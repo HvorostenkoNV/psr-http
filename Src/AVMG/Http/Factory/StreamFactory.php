@@ -26,12 +26,13 @@ class StreamFactory implements StreamFactoryInterface
      * The stream SHOULD be created with a temporary resource.
      *
      * @param   string $content             String content with which to populate the stream.
+     *
      * @return  StreamInterface             New stream.
      ************************************************************************/
     public function createStream(string $content = '') : StreamInterface
     {
         $mode       = ResourceAccessMode::get('readWrite');
-        $resource   = @fopen('php://temp', $mode);
+        $resource   = fopen('php://temp', $mode);
 
         if ($resource !== false && strlen($content) > 0)
         {
@@ -52,6 +53,7 @@ class StreamFactory implements StreamFactoryInterface
      *                                      as basis of stream.
      * @param   string  $mode               The mode with which to open
      *                                      the underlying filename/stream.
+     *
      * @return  StreamInterface             Stream.
      * @throws  RuntimeException            File cannot be opened.
      * @throws  InvalidArgumentException    Mode is invalid.
@@ -72,7 +74,7 @@ class StreamFactory implements StreamFactoryInterface
         try
         {
             $modeNormalized = ResourceAccessMode::normalize($mode);
-            $resource       = @fopen($file->getPathname(), $modeNormalized);
+            $resource       = fopen($file->getPathname(), $modeNormalized);
 
             return $this->createStreamFromResource($resource);
         }
@@ -88,6 +90,7 @@ class StreamFactory implements StreamFactoryInterface
      *
      * @param   resource $resource          The PHP resource to use as
      *                                      the basis for the stream.
+     *
      * @return  StreamInterface             Stream.
      ************************************************************************/
     public function createStreamFromResource($resource) : StreamInterface

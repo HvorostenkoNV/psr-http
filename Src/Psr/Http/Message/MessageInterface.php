@@ -35,6 +35,7 @@ interface MessageInterface
      * of the message, and MUST return an instance that has the new protocol version.
      *
      * @param   string $version             HTTP protocol version.
+     *
      * @return  MessageInterface            Instance with the specified HTTP protocol version.
      ************************************************************************/
     public function withProtocolVersion(string $version) : MessageInterface;
@@ -72,6 +73,7 @@ interface MessageInterface
      * Checks if a header exists by the given case-insensitive name.
      *
      * @param   string $name                Case-insensitive header field name.
+     *
      * @return  bool                        Any header names match the given header
      *                                      name using a case-insensitive string
      *                                      comparison. Returns false if no matching
@@ -88,6 +90,7 @@ interface MessageInterface
      * an empty array.
      *
      * @param   string $name                Case-insensitive header field name.
+     *
      * @return  string[]                    Array of string values as provided
      *                                      for the given header. If the header
      *                                      does not appear in the message,
@@ -108,6 +111,7 @@ interface MessageInterface
      * an empty string.
      *
      * @param   string $name                Case-insensitive header field name.
+     *
      * @return  string                      String of values as provided for
      *                                      the given header concatenated together
      *                                      using a comma. If the header does not
@@ -127,6 +131,7 @@ interface MessageInterface
      *
      * @param   string          $name       Case-insensitive header field name.
      * @param   string|string[] $value      Header value(s).
+     *
      * @return  MessageInterface            Instance with the provided value
      *                                      replacing the specified header.
      * @throws  InvalidArgumentException    Invalid header names or values.
@@ -145,6 +150,7 @@ interface MessageInterface
      *
      * @param   string          $name       Case-insensitive header field name to add.
      * @param   string|string[] $value      Header value(s).
+     *
      * @return  MessageInterface            Instance with the specified header
      *                                      appended with the given value.
      * @throws  InvalidArgumentException    Invalid header names or values.
@@ -160,6 +166,7 @@ interface MessageInterface
      * the named header.
      *
      * @param   string $name                Case-insensitive header field name to remove.
+     *
      * @return  MessageInterface            Instance without the specified header.
      ************************************************************************/
     public function withoutHeader(string $name) : MessageInterface;
@@ -179,6 +186,7 @@ interface MessageInterface
      * new body stream.
      *
      * @param   StreamInterface $body       Body.
+     *
      * @return  MessageInterface            Instance with the specified message body.
      * @throws  InvalidArgumentException    Body is not valid.
      ************************************************************************/

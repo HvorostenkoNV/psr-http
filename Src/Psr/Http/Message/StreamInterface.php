@@ -84,6 +84,7 @@ interface StreamInterface
      *                                      SEEK_SET: Set position equal to offset bytes
      *                                      SEEK_CUR: Set position to current location plus offset
      *                                      SEEK_END: Set position to end-of-stream plus offset.
+     *
      * @return  void
      * @throws  RuntimeException            Failure.
      ************************************************************************/
@@ -111,6 +112,7 @@ interface StreamInterface
      * Write data to the stream.
      *
      * @param   string $string              String that is to be written.
+     *
      * @return  int                         Number of bytes written to the stream.
      * @throws  RuntimeException            Failure.
      ************************************************************************/
@@ -128,6 +130,7 @@ interface StreamInterface
      *                                      and return them. Fewer than $length bytes
      *                                      may be returned if underlying stream
      *                                      call returns fewer bytes.
+     *
      * @return  string                      Data read from the stream,
      *                                      or an empty string if no bytes are available.
      * @throws  RuntimeException            Error occurs.
@@ -149,6 +152,7 @@ interface StreamInterface
      * @see http://php.net/manual/en/function.stream-get-meta-data.php
      *
      * @param   string $key                 Specific metadata to retrieve.
+     *
      * @return  array|mixed|null            Returns an associative array
      *                                      if no key is provided. Returns a specific
      *                                      key value if a key is provided and the

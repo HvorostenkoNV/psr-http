@@ -64,6 +64,7 @@ interface UploadedFileInterface
      * @see http://php.net/move_uploaded_file
      *
      * @param   string $targetPath          Path to which to move the uploaded file.
+     *
      * @return  void
      * @throws  InvalidArgumentException    $targetPath specified is invalid.
      * @throws  RuntimeException            On any error during the move operation or
@@ -79,7 +80,7 @@ interface UploadedFileInterface
      *
      * @return int|null                     File size in bytes or null if unknown.
      ************************************************************************/
-    public function getSize() : ?null;
+    public function getSize() : ?int;
     /** **********************************************************************
      * Retrieve the error associated with the uploaded file.
      *

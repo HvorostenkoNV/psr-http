@@ -92,6 +92,7 @@ class ResponseStatus
      * Normalize the HTTP response status.
      *
      * @param   int $status                 HTTP response status.
+     *
      * @return  int                         Normalized HTTP response status.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
@@ -126,6 +127,7 @@ class ResponseStatus
      * Get status phrase.
      *
      * @param   int $status                 HTTP response status.
+     *
      * @return  string                      Status phrase.
      ************************************************************************/
     public static function getPhrase(int $status) : string

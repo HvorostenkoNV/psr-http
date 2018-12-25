@@ -103,6 +103,7 @@ class Stream extends AbstractStream implements StreamInterface
      *                                      SEEK_SET: Set position equal to offset bytes
      *                                      SEEK_CUR: Set position to current location plus offset
      *                                      SEEK_END: Set position to end-of-stream plus offset.
+     *
      * @return  void
      * @throws  RuntimeException            Failure.
      ************************************************************************/
@@ -127,6 +128,7 @@ class Stream extends AbstractStream implements StreamInterface
      * Write data to the stream.
      *
      * @param   string $string              String that is to be written.
+     *
      * @return  int                         Number of bytes written to the stream.
      * @throws  RuntimeException            Failure.
      ************************************************************************/
@@ -141,7 +143,7 @@ class Stream extends AbstractStream implements StreamInterface
             throw new RuntimeException('stream is not writable');
         }
 
-        $writeResult = @fwrite($this->stream, $string);
+        $writeResult = fwrite($this->stream, $string);
         if ($writeResult === false)
         {
             throw new RuntimeException('stream writing error');
@@ -156,6 +158,7 @@ class Stream extends AbstractStream implements StreamInterface
      *                                      and return them. Fewer than $length bytes
      *                                      may be returned if underlying stream
      *                                      call returns fewer bytes.
+     *
      * @return  string                      Data read from the stream,
      *                                      or an empty string if no bytes are available.
      * @throws  RuntimeException            Error occurs.
@@ -171,7 +174,7 @@ class Stream extends AbstractStream implements StreamInterface
             throw new RuntimeException('stream is not readable');
         }
 
-        $readResult = @fread($this->stream, $length);
+        $readResult = fread($this->stream, $length);
         if ($readResult === false)
         {
             throw new RuntimeException('stream reading error');
@@ -213,6 +216,7 @@ class Stream extends AbstractStream implements StreamInterface
      * @see http://php.net/manual/en/function.stream-get-meta-data.php
      *
      * @param   string $key                 Specific metadata to retrieve.
+     *
      * @return  array|mixed|null            Returns an associative array
      *                                      if no key is provided. Returns a specific
      *                                      key value if a key is provided and the

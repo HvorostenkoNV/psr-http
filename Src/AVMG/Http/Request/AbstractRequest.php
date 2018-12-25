@@ -89,6 +89,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      * @see http://tools.ietf.org/html/rfc7230#section-5.3
      *
      * @param   string $requestTarget           Request target.
+     *
      * @return  RequestInterface                Instance with the specific request-target.
      ************************************************************************/
     public function withRequestTarget(string $requestTarget) : RequestInterface
@@ -127,6 +128,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      * changed request method.
      *
      * @param   string $method                  Case-sensitive method.
+     *
      * @return  RequestInterface                Instance with the provided HTTP method.
      * @throws  InvalidArgumentException        Invalid HTTP methods.
      ************************************************************************/
@@ -186,6 +188,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      *
      * @param   UriInterface    $uri            New request URI to use.
      * @param   bool            $preserveHost   Preserve the original state of the Host header.
+     *
      * @return  RequestInterface                Instance with the provided URI.
      ************************************************************************/
     public function withUri(UriInterface $uri, bool $preserveHost = false) : RequestInterface
@@ -215,6 +218,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      * Get request target from URI.
      *
      * @param   UriInterface $uri               URI.
+     *
      * @return  string                          Request target from URI.
      ************************************************************************/
     protected function getRequestTargetFromUri(UriInterface $uri) : string
@@ -230,6 +234,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      * Get host from URI.
      *
      * @param   UriInterface $uri               URI.
+     *
      * @return  string                          Host from URI.
      ************************************************************************/
     protected function getHostFromUri(UriInterface $uri) : string
@@ -245,6 +250,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      * Validate request target.
      *
      * @param   string $requestTarget       Request target.
+     *
      * @return  string                      Validated request target.
      * @throws  InvalidArgumentException    Validating error.
      ************************************************************************/

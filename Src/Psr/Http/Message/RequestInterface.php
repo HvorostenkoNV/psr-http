@@ -60,6 +60,7 @@ interface RequestInterface extends MessageInterface
      * @see http://tools.ietf.org/html/rfc7230#section-5.3
      *
      * @param   string $requestTarget           Request target.
+     *
      * @return  RequestInterface                Instance with the specific request-target.
      ************************************************************************/
     public function withRequestTarget(string $requestTarget) : RequestInterface;
@@ -81,6 +82,7 @@ interface RequestInterface extends MessageInterface
      * changed request method.
      *
      * @param   string $method                  Case-sensitive method.
+     *
      * @return  RequestInterface                Instance with the provided HTTP method.
      * @throws  InvalidArgumentException        Invalid HTTP methods.
      ************************************************************************/
@@ -124,6 +126,7 @@ interface RequestInterface extends MessageInterface
      *
      * @param   UriInterface    $uri            New request URI to use.
      * @param   bool            $preserveHost   Preserve the original state of the Host header.
+     *
      * @return  RequestInterface                Instance with the provided URI.
      ************************************************************************/
     public function withUri(UriInterface $uri, bool $preserveHost = false) : RequestInterface;

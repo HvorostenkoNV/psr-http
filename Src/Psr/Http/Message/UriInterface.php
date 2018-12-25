@@ -189,6 +189,7 @@ interface UriInterface
      * An empty scheme is equivalent to removing the scheme.
      *
      * @param   string $scheme              Scheme to use with the new instance.
+     *
      * @return  UriInterface                Instance with the specified scheme.
      * @throws  InvalidArgumentException    Invalid or unsupported schemes.
      ************************************************************************/
@@ -205,6 +206,7 @@ interface UriInterface
      *
      * @param   string  $user               User name to use for authority.
      * @param   string  $password           Password associated with $user.
+     *
      * @return  UriInterface                Instance with the specified user information.
      ************************************************************************/
     public function withUserInfo(string $user, string $password = '') : UriInterface;
@@ -217,6 +219,7 @@ interface UriInterface
      * An empty host value is equivalent to removing the host.
      *
      * @param   string $host                Hostname to use with the new instance.
+     *
      * @return  UriInterface                Instance with the specified host.
      * @throws  InvalidArgumentException    Invalid hostname.
      ************************************************************************/
@@ -235,6 +238,7 @@ interface UriInterface
      *
      * @param   int $port                   The port to use with the new instance;
      *                                      a zero value removes the port information.
+     *
      * @return  UriInterface                Instance with the specified port.
      * @throws  InvalidArgumentException    Invalid ports.
      ************************************************************************/
@@ -258,6 +262,7 @@ interface UriInterface
      * Implementations ensure the correct encoding as outlined in getPath().
      *
      * @param   string $path                Path to use with the new instance.
+     *
      * @return  UriInterface                Instance with the specified path.
      * @throws  InvalidArgumentException    Invalid paths.
      ************************************************************************/
@@ -274,6 +279,7 @@ interface UriInterface
      * An empty query string value is equivalent to removing the query string.
      *
      * @param   string $query               Query string to use with the new instance.
+     *
      * @return  UriInterface                Instance with the specified query string.
      * @throws  InvalidArgumentException    Invalid query strings.
      ************************************************************************/
@@ -290,6 +296,7 @@ interface UriInterface
      * An empty fragment value is equivalent to removing the fragment.
      *
      * @param   string $fragment            Fragment to use with the new instance.
+     *
      * @return  UriInterface                Instance with the specified URI fragment.
      ************************************************************************/
     public function withFragment(string $fragment) : UriInterface;

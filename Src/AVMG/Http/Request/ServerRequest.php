@@ -76,6 +76,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      * updated cookie values.
      *
      * @param   array $cookies                  Array of key/value pairs representing cookies.
+     *
      * @return  ServerRequestInterface          Instance with the specified cookies.
      ************************************************************************/
     public function withCookieParams(array $cookies) : ServerRequestInterface
@@ -121,6 +122,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      *
      * @param   array $query                    Array of query string arguments,
      *                                          typically from $_GET.
+     *
      * @return  ServerRequestInterface          Instance with the specified query string arguments.
      ************************************************************************/
     public function withQueryParams(array $query) : ServerRequestInterface
@@ -154,6 +156,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      * updated body parameters.
      *
      * @param   array $uploadedFiles            Array tree of UploadedFileInterface instances.
+     *
      * @return  ServerRequestInterface          Instance with the specified uploaded files.
      * @throws  InvalidArgumentException        Invalid structure is provided.
      ************************************************************************/
@@ -216,6 +219,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      *
      * @param   null|array|object $data         The deserialized body data. This will
      *                                          typically be in an array or object.
+     *
      * @return  ServerRequestInterface          Instance with the specified body parameters.
      * @throws  InvalidArgumentException        Unsupported argument type is provided.
      ************************************************************************/
@@ -266,6 +270,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      * @param   string  $name                   Attribute name.
      * @param   mixed   $default                Default value to return if the attribute
      *                                          does not exist.
+     *
      * @return  mixed                           Derived request attribute.
      ************************************************************************/
     public function getAttribute(string $name, $default = null)
@@ -286,6 +291,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      *
      * @param   string  $name                   Attribute name.
      * @param   mixed   $value                  Value of the attribute.
+     *
      * @return  ServerRequestInterface          Instance with the specified derived
      *                                          request attribute.
      ************************************************************************/
@@ -309,6 +315,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      * @see getAttributes()
      *
      * @param   string $name                    Attribute name.
+     *
      * @return  ServerRequestInterface          Instance that removes the specified
      *                                          derived request attribute.
      ************************************************************************/
@@ -323,12 +330,13 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      * Check uploaded files is valid.
      *
      * @param   array $files                Uploaded files.
+     *
      * @return  void
      * @throws  InvalidArgumentException    Validating error.
      ************************************************************************/
     private function checkUploadedFilesTree(array $files) : void
     {
-        foreach ($files as $index => $value)
+        foreach ($files as $value)
         {
             if (is_array($value))
             {
