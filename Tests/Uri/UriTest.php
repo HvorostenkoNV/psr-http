@@ -89,7 +89,7 @@ class UriTest extends TestCase
                 '*', '-', '.', '_', '~'
             ];
     /** **********************************************************************
-     * Testing method "UriTest::getScheme".
+     * Testing method "UriInterface::getScheme".
      *
      * @test
      * @dataProvider    getSchemeDataProvider
@@ -114,7 +114,7 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Testing method "UriTest::getHost".
+     * Testing method "UriInterface::getHost".
      *
      * @test
      * @dataProvider    getHostDataProvider
@@ -139,7 +139,7 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Testing method "UriTest::getPort".
+     * Testing method "UriInterface::getPort".
      *
      * @test
      * @dataProvider    getPortDataProvider
@@ -164,7 +164,7 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Testing method "UriTest::getUserInfo".
+     * Testing method "UriInterface::getUserInfo".
      *
      * @test
      * @dataProvider    getUserInfoDataProvider
@@ -189,7 +189,7 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Testing method "UriTest::getAuthority".
+     * Testing method "UriInterface::getAuthority".
      *
      * @test
      * @dataProvider    getAuthorityDataProvider
@@ -214,7 +214,7 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Testing method "UriTest::getPath".
+     * Testing method "UriInterface::getPath".
      *
      * @test
      * @dataProvider    getPathDataProvider
@@ -239,7 +239,7 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Testing method "UriTest::getQuery".
+     * Testing method "UriInterface::getQuery".
      *
      * @test
      * @dataProvider    getQueryDataProvider
@@ -612,11 +612,22 @@ class UriTest extends TestCase
      ************************************************************************/
     private function getHostValues() : array
     {
+        $ipAddressesV6ValuesRaw = $this->getIpAddressesV6Values();
+        $ipAddressesV6Values    = [];
+
+        foreach ($ipAddressesV6ValuesRaw as $key => $value)
+        {
+            $key    = "[$key]";
+            $value  = !is_null($value) ? "[$value]" : null;
+
+            $ipAddressesV6Values[$key] = $value;
+        }
+
         return array_merge
         (
             $this->getDomainNamesValues(),
             $this->getIpAddressesV4Values(),
-            $this->getIpAddressesV6Values()
+            $ipAddressesV6Values
         );
     }
     /** **********************************************************************
@@ -642,20 +653,21 @@ class UriTest extends TestCase
         );
         $result                 =
             [
-                'site'          => 'site',
+                'site.en'       => 'site.en',
                 'site.com'      => 'site.com',
                 'www.site.com'  => 'www.site.com',
 
-                'Site'          => 'site',
-                'SITE'          => 'site',
-                'sItE'          => 'site',
+                'Site.com'      => 'site.com',
+                'SITE.com'      => 'site.com',
+                'sItE.com'      => 'site.com',
 
                 'site10.com'    => 'site10.com',
                 '10site.com'    => '10site.com',
+                '10.com'        => '10.com',
 
-                'site '         => 'site',
-                ' site'         => 'site',
-                's i t e'       => null
+                'site.com '     => 'site.com',
+                ' site.com'     => 'site.com',
+                's i t e.com'   => null
             ];
 
         foreach ($allowedSpecialChars as $char)
@@ -711,20 +723,22 @@ class UriTest extends TestCase
             [
                 '1234:5678:1357:2468:aabb:ccdd:eeff:ABCD'   => '1234:5678:1357:2468:aabb:ccdd:eeff:ABCD',
                 '1234:123:12:1:abcd:ABCD:AbCd:FF'           => '1234:123:12:1:abcd:ABCD:AbCd:FF',
+                '1a:2b:3c:4d:5e:6f:7:8'                     => '1a:2b:3c:4d:5e:6f:7:8',
 
                 '1234:123::'                                => '1234:123::',
                 '::1234:123'                                => '::1234:123',
                 '1234:123::eeff:ABCD'                       => '1234:123::eeff:ABCD',
                 '::'                                        => '::',
+                '::10.10.1.10'                              => '::10.10.1.10',
 
                 '01:5678:1357:2468:aabb:ccdd:eeff:ABCD'     => '1:5678:1357:2468:aabb:ccdd:eeff:ABCD',
                 '1234:5678:1357:2468:aabb:ccdd:0:000'       => '1234:5678:1357:2468:aabb:ccdd::',
                 '00:0000:1357:2468:aabb:ccdd:eeff:ABCD'     => '::1357:2468:aabb:ccdd:eeff:ABCD',
                 '1234:5678:0:0:0:0:eeff:ABCD'               => '1234:5678::eeff:ABCD',
 
-                'abg::'                                     => null,
                 'abcde::'                                   => null,
                 '12345::'                                   => null,
+                '12ab3::'                                   => null,
 
                 '1111:2222:3333:aaaa:bbbb:cccc:1.0.0.1'     => '1111:2222:3333:aaaa:bbbb:cccc:1.0.0.1',
                 '1111:2222:3333:aaaa::1.0.0.1'              => '1111:2222:3333:aaaa::1.0.0.1',
@@ -734,7 +748,8 @@ class UriTest extends TestCase
                 '1111:2222:3333:aaaa:bbbb:cccc:1.0.0.256'   => null,
                 '1111:2222:3333:aaaa:bbbb:cccc:1.0.0.1.2'   => null,
                 '1111:2222:3333:aaaa:bbbb:gggg:1.0.0.1'     => null,
-                '1111:2222:3333:aaaa:bbbb:cccc:::1.0.0.1'   => null
+                '1111:2222:3333:aaaa:bbbb:cccc:::1.0.0.1'   => null,
+                '1111:2222:3333:1.0.0.1:bbbb:cccc'          => null
             ];
     }
     /** **********************************************************************

@@ -16,6 +16,13 @@ spl_autoload_register(function($className)
 
     if ($classFile->isFile() && $classFile->getExtension() == 'php')
     {
-        include $classFile->getPathname();
+        try
+        {
+            include_once $classFile->getPathname();
+        }
+        catch (Throwable $exception)
+        {
+
+        }
     }
 });
