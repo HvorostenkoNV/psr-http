@@ -3,9 +3,7 @@ declare(strict_types=1);
 
 namespace AVMG\Http\Helper;
 
-use
-    RuntimeException,
-    AVMG\Http\Exception\NormalizingException;
+use AVMG\Http\Exception\NormalizingException;
 /** ***********************************************************************************************
  * IP address class.
  *
@@ -19,8 +17,7 @@ class IpAddress
         V4_PART_MAX_VALUE   = 255,
         V4_PARTS_COUNT      = 4,
         V6_PARTS_COUNT      = 8,
-        V6_DUAL_PARTS_COUNT = 6,
-        V6_PART_MASK        = '/^[0-9a-zA-Z]{1,4}$/';
+        V6_DUAL_PARTS_COUNT = 6;
     /** **********************************************************************
      * Normalize the v4 IP address.
      *
@@ -51,10 +48,9 @@ class IpAddress
             }
             catch (NormalizingException $exception)
             {
-                $error = $exception->getMessage();
                 throw new NormalizingException
                 (
-                    "ip address v4 segment validation error: $error",
+                    "ip address v4 segment validation error: {$exception->getMessage()}",
                     0,
                     $exception
                 );
@@ -115,7 +111,7 @@ class IpAddress
     {
         if (!is_numeric($segment))
         {
-            throw new NormalizingException("$segment is not numeric value");
+            throw new NormalizingException("\"$segment\" is not numeric value");
         }
 
         $segmentNumeric = (int) $segment;
@@ -124,65 +120,136 @@ class IpAddress
 
         if ($segmentNumeric < self::V4_PART_MIN_VALUE)
         {
-            throw new NormalizingException("$segmentNumeric less than $minValue");
+            throw new NormalizingException("\"$segmentNumeric\" less than $minValue");
         }
         if ($segmentNumeric > self::V4_PART_MAX_VALUE)
         {
-            throw new NormalizingException("$segmentNumeric grater than $maxValue");
+            throw new NormalizingException("\"$segmentNumeric\" grater than $maxValue");
         }
 
         return (string) $segmentNumeric;
     }
     /** **********************************************************************
-     * Convert v6 IP address to full format.
+     * Normalize the v6 IP address without v4 IP address postfix.
      *
      * @param   string  $ipAddress          V6 IP address.
-     * @param   bool    $isDual             Provided v6 IP address is dual.
+     * @param   bool    $isDual             V6 IP address was with v4 IP address postfix.
      *
-     * @return  string                      Converted v6 IP address in full format.
+     * @return  string                      Normalized v6 IP address.
+     * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
-    private static function convertV6ToFullFormat(string $ipAddress, bool $isDual) : string
+    private static function normalizeV6WithoutV4Part(string $ipAddress, bool $isDual) : string
     {
         $ipAddressExplode       = explode(':', $ipAddress);
-        $ipAddressNormalParts   = array_filter($ipAddressExplode, function($value)
-        {
-            return strlen($value) > 0;
-        });
-        $currentPartsCount      = count($ipAddressNormalParts);
+        $currentPartsCount      = count($ipAddressExplode);
         $needPartsCount         = $isDual ? self::V6_DUAL_PARTS_COUNT : self::V6_PARTS_COUNT;
-        $isShortened            = (int) preg_match_all('/[\:]{2}/', $ipAddress) == 1;
-        $ipAddressPrepared      = $ipAddress;
+        $shortsCount            = (int) preg_match_all('/[\:]{2}/',     $ipAddress);
+        $shortsIncorrectCount   = (int) preg_match_all('/[\:]{3,}/',    $ipAddress);
+        $isShortened            = $shortsCount == 1;
 
-        if ($isShortened == 1)
+        if ($shortsCount > 1 || $shortsIncorrectCount > 0)
         {
-            $repeatCount        = $needPartsCount - $currentPartsCount;
-            $repeatString       = str_repeat(':0:', $repeatCount);
-            $ipAddressPrepared  = str_replace('::', $repeatString, $ipAddressPrepared);
-            $ipAddressPrepared  = str_replace('::', ':', $ipAddressPrepared);
-            $ipAddressPrepared  = trim($ipAddressPrepared, ':');
+            throw new NormalizingException
+            (
+                "ip address v6 \"$ipAddress\" contains incorrect shortens"
+            );
+        }
+        if
+        (
+            strlen($ipAddress) < 2 ||
+            (
+                $ipAddress[0] == ':' &&
+                $ipAddress[1] != ':'
+            )  ||
+            (
+                $ipAddress[strlen($ipAddress) - 1] == ':' &&
+                $ipAddress[strlen($ipAddress) - 2] != ':'
+            )
+        )
+        {
+            throw new NormalizingException
+            (
+                "ip address v6 \"$ipAddress\" has incorrect format"
+            );
+        }
+        if
+        (
+            !$isShortened   && $currentPartsCount != $needPartsCount ||
+             $isShortened   && $currentPartsCount >  $needPartsCount - 2
+        )
+        {
+            throw new NormalizingException
+            (
+                "ip address v6 \"$ipAddress\" contains incorrect segments count"
+            );
         }
 
-        return $ipAddressPrepared;
+        foreach ($ipAddressExplode as $index => $part)
+        {
+            if ($isShortened && strlen($part) <= 0)
+            {
+                continue;
+            }
+
+            try
+            {
+                $ipAddressExplode[$index] = self::normalizeV6Segment($part);
+            }
+            catch (NormalizingException $exception)
+            {
+                throw new NormalizingException
+                (
+                    "ip address v6 segment validation error: {$exception->getMessage()}",
+                    0,
+                    $exception
+                );
+            }
+        }
+
+        $ipAddressConverted = implode(':', $ipAddressExplode);
+        $ipAddressConverted = !$isShortened
+            ? self::convertV6ToShortFormat($ipAddressConverted)
+            : $ipAddressConverted;
+
+        return $ipAddressConverted;
     }
     /** **********************************************************************
      * Convert v6 IP address to short format.
      *
      * @param   string $ipAddress           V6 IP address.
      *
-     * @return  string                      Converted v6 IP address in short format.
+     * @return  string                      Converted v6 IP address to short format.
      ************************************************************************/
     private static function convertV6ToShortFormat(string $ipAddress) : string
     {
-        $ipAddressExplode   = explode(':', $ipAddress);
-        $ipAddressParts     = array_walk($ipAddressExplode, function(&$value)
-        {
-            $value  = ltrim($value, '0');
-            $value  = strlen($value) > 0 ? $value : '0';
-        });
-        $ipAddressPrepared  = implode(':', $ipAddressParts);
-        $matches            = [];
+        preg_match_all('/([\:]?0[\:]?){1,}/', $ipAddress, $matches);
 
-        preg_match_all('/(\:){0,1}(0\:0){1,}(\:){0,1}/', $ipAddressPrepared, $matches);
+        $ipAddressPrepared  = $ipAddress;
+        $longestValue       = '';
+        $foundMatches       = isset($matches[0]) && is_array($matches[0])
+            ? $matches[0]
+            : [];
+
+        foreach ($foundMatches as $value)
+        {
+            if (strlen($value) > strlen($longestValue))
+            {
+                $longestValue = $value;
+            }
+        }
+
+        if (strlen($longestValue) > 0)
+        {
+            $ipAddressPrepared = preg_replace
+            (
+                '/'.preg_quote($longestValue).'/',
+                '::',
+                $ipAddressPrepared,
+                1
+            );
+        }
+
+        return $ipAddressPrepared;
     }
     /** **********************************************************************
      * Normalize the v6 IP address segment.
@@ -194,6 +261,24 @@ class IpAddress
      ************************************************************************/
     private static function normalizeV6Segment(string $segment) : string
     {
+        $mask       = '/^[0-9a-zA-Z]{1,4}$/';
+        $matches    = [];
 
+        preg_match($mask, $segment, $matches);
+
+        if (!isset($matches[0]) || $matches[0] !== $segment)
+        {
+            throw new NormalizingException
+            (
+                "\"$segment\" does not matched the pattern \"$mask\""
+            );
+        }
+
+        $segmentConverted   = ltrim($segment, '0');
+        $segmentConverted   = strlen($segmentConverted) <= 0
+            ? '0'
+            : $segmentConverted;
+
+        return $segmentConverted;
     }
 }
