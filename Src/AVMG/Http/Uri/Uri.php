@@ -7,6 +7,8 @@ use
     InvalidArgumentException,
     AVMG\Http\Exception\NormalizingException,
     Psr\Http\Message\UriInterface,
+    AVMG\Http\Helper\Scheme,
+    AVMG\Http\Helper\Host,
     AVMG\Http\Helper\UriParams;
 /** ***********************************************************************************************
  * PSR-7 UriInterface implementation.
@@ -37,7 +39,7 @@ class Uri implements UriInterface
         try
         {
             $scheme         = (string) ($uriData['scheme'] ?? '');
-            $this->scheme   = UriParams::normalizeScheme($scheme);
+            $this->scheme   = Scheme::normalize($scheme);
         }
         catch (NormalizingException $exception)
         {
@@ -47,7 +49,7 @@ class Uri implements UriInterface
         try
         {
             $host       = (string) ($uriData['host'] ?? '');
-            $this->host = UriParams::normalizeHost($host);
+            $this->host = Host::normalize($host);
         }
         catch (NormalizingException $exception)
         {
@@ -338,7 +340,7 @@ class Uri implements UriInterface
         try
         {
             $newInstance = clone $this;
-            $newInstance->scheme = UriParams::normalizeScheme($scheme);
+            $newInstance->scheme = Scheme::normalize($scheme);
 
             return $newInstance;
         }
@@ -404,7 +406,7 @@ class Uri implements UriInterface
         try
         {
             $newInstance = clone $this;
-            $newInstance->host = UriParams::normalizeHost($host);
+            $newInstance->host = Host::normalize($host);
 
             return $newInstance;
         }
@@ -610,42 +612,53 @@ class Uri implements UriInterface
 
         if (strpos($uriFiltered, '://') !== false)
         {
-            $explode            = explode('://', $uriFiltered, 2);
-            $uriData['scheme']  = $explode[0];
-            $uriFiltered        = $explode[1];
+            $explode            = explode('://', $uriFiltered);
+            $uriData['scheme']  = array_shift($explode);
+            $uriFiltered        = implode('://', $explode);
         }
         if (strpos($uriFiltered, '#') !== false)
         {
-            $explode                = explode('#', $uriFiltered, 2);
-            $uriData['fragment']    = $explode[1];
-            $uriFiltered            = $explode[0];
+            $explode                = explode('#', $uriFiltered);
+            $uriData['fragment']    = array_pop($explode);
+            $uriFiltered            = implode('#', $explode);
         }
         if (strpos($uriFiltered, '?') !== false)
         {
-            $explode            = explode('?', $uriFiltered, 2);
-            $uriData['query']   = $explode[1];
-            $uriFiltered        = $explode[0];
+            $explode            = explode('?', $uriFiltered);
+            $uriData['query']   = array_pop($explode);
+            $uriFiltered        = implode('?', $explode);
         }
         if (strpos($uriFiltered, '@') !== false)
         {
-            $explode            = explode('@', $uriFiltered, 2);
-            $userInfo           = $explode[0];
+            $explode            = explode('@', $uriFiltered);
+            $userInfo           = array_shift($explode);
             $userInfoExplode    = explode(':', $userInfo);
-            $uriData['user']    = $userInfoExplode[0];
-            $uriData['pass']    = $userInfoExplode[1] ?? '';
-            $uriFiltered        = $explode[1];
+            $uriData['user']    = array_shift($userInfoExplode);
+            $uriData['pass']    = implode(':', $userInfoExplode);
+            $uriFiltered        = implode('@', $explode);
         }
         if (strpos($uriFiltered, '/') !== false)
         {
-            $explode            = explode('/', $uriFiltered, 2);
-            $uriData['path']    = '/'.$explode[1];
-            $uriFiltered        = $explode[0];
+            $explode            = explode('/', $uriFiltered);
+            $uriData['path']    = '/'.array_pop($explode);
+            $uriFiltered        = implode('/', $explode);
         }
-        if (strpos($uriFiltered, ':') !== false)
+        if
+        (
+            (
+                strpos($uriFiltered, '[')   !== false &&
+                strpos($uriFiltered, ']:')  !== false
+            ) ||
+            (
+                strpos($uriFiltered, '[')   === false &&
+                strpos($uriFiltered, ']')   === false &&
+                strpos($uriFiltered, ':')   !== false
+            )
+        )
         {
-            $explode            = explode(':', $uriFiltered, 2);
-            $uriData['port']    = $explode[1];
-            $uriFiltered        = $explode[0];
+            $explode            = explode(':', $uriFiltered);
+            $uriData['port']    = array_pop($explode);
+            $uriFiltered        = implode(':', $explode);
         }
 
         $uriData['host'] = $uriFiltered;

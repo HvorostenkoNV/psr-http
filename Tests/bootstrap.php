@@ -18,7 +18,7 @@ spl_autoload_register(function($className)
     {
         try
         {
-            include_once $classFile->getPathname();
+            require $classFile->getPathname();
         }
         catch (Throwable $exception)
         {

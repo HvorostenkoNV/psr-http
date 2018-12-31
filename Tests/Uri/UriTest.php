@@ -89,7 +89,7 @@ class UriTest extends TestCase
                 '*', '-', '.', '_', '~'
             ];
     /** **********************************************************************
-     * Testing method "UriInterface::getScheme".
+     * Testing method "Uri::getScheme".
      *
      * @test
      * @dataProvider    getSchemeDataProvider
@@ -114,7 +114,7 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Testing method "UriInterface::getHost".
+     * Testing method "Uri::getHost".
      *
      * @test
      * @dataProvider    getHostDataProvider
@@ -139,7 +139,7 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Testing method "UriInterface::getPort".
+     * Testing method "Uri::getPort".
      *
      * @test
      * @dataProvider    getPortDataProvider
@@ -164,7 +164,7 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Testing method "UriInterface::getUserInfo".
+     * Testing method "Uri::getUserInfo".
      *
      * @test
      * @dataProvider    getUserInfoDataProvider
@@ -189,7 +189,7 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Testing method "UriInterface::getAuthority".
+     * Testing method "Uri::getAuthority".
      *
      * @test
      * @dataProvider    getAuthorityDataProvider
@@ -214,7 +214,7 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Testing method "UriInterface::getPath".
+     * Testing method "Uri::getPath".
      *
      * @test
      * @dataProvider    getPathDataProvider
@@ -239,7 +239,7 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Testing method "UriInterface::getQuery".
+     * Testing method "Uri::getQuery".
      *
      * @test
      * @dataProvider    getQueryDataProvider
@@ -617,10 +617,14 @@ class UriTest extends TestCase
 
         foreach ($ipAddressesV6ValuesRaw as $key => $value)
         {
-            $key    = "[$key]";
-            $value  = !is_null($value) ? "[$value]" : null;
-
-            $ipAddressesV6Values[$key] = $value;
+            if (!is_null($value))
+            {
+                $ipAddressesV6Values["[$key]"]  = "[$value]";
+            }
+            else
+            {
+                $ipAddressesV6Values["[$key]"]  = null;
+            }
         }
 
         return array_merge
@@ -725,31 +729,46 @@ class UriTest extends TestCase
                 '1234:123:12:1:abcd:ABCD:AbCd:FF'           => '1234:123:12:1:abcd:ABCD:AbCd:FF',
                 '1a:2b:3c:4d:5e:6f:7:8'                     => '1a:2b:3c:4d:5e:6f:7:8',
 
-                '1234:123::'                                => '1234:123::',
-                '::1234:123'                                => '::1234:123',
-                '1234:123::eeff:ABCD'                       => '1234:123::eeff:ABCD',
+                '01:2:3:4:5:6:7:8'                          => '1:2:3:4:5:6:7:8',
+                '001:2:3:4:5:6:7:8'                         => '1:2:3:4:5:6:7:8',
+                '010:2:3:4:5:6:7:8'                         => '10:2:3:4:5:6:7:8',
+                '0abc:2:3:4:5:6:7:8'                        => 'abc:2:3:4:5:6:7:8',
+
+                '1:2:3:4:5:6:0:0'                           => '1:2:3:4:5:6::',
+                '0:0:3:4:5:6:7:8'                           => '::3:4:5:6:7:8',
+                '1:2:3:0:0:6:7:8'                           => '1:2:3::6:7:8',
+
+                '1:0:00:4:000:0000:0:8'                     => '1:0:0:4::8',
+                '1:0:0:4:5:0:0:8'                           => '1::4:5:0:0:8',
+                '0:00:000:0000:0:00:000:0000'               => '::',
+
+                '1:2::'                                     => '1:2::',
+                '::7:8'                                     => '::7:8',
+                '1:2::7:8'                                  => '1:2::7:8',
                 '::'                                        => '::',
-                '::10.10.1.10'                              => '::10.10.1.10',
 
-                '01:5678:1357:2468:aabb:ccdd:eeff:ABCD'     => '1:5678:1357:2468:aabb:ccdd:eeff:ABCD',
-                '1234:5678:1357:2468:aabb:ccdd:0:000'       => '1234:5678:1357:2468:aabb:ccdd::',
-                '00:0000:1357:2468:aabb:ccdd:eeff:ABCD'     => '::1357:2468:aabb:ccdd:eeff:ABCD',
-                '1234:5678:0:0:0:0:eeff:ABCD'               => '1234:5678::eeff:ABCD',
+                '1:2:3:4:5:6:1.0.0.1'                       => '1:2:3:4:5:6:1.0.0.1',
+                '1:2::5:6:1.0.0.1'                          => '1:2::5:6:1.0.0.1',
+                '::5:6:1.0.0.1'                             => '::5:6:1.0.0.1',
+                '1:2::1.0.0.1'                              => '1:2::1.0.0.1',
+                '01:002:0000:000:5:6:01.010.000.1'          => '1:2::5:6:1.10.0.1',
 
-                'abcde::'                                   => null,
-                '12345::'                                   => null,
-                '12ab3::'                                   => null,
+                '1:2:3:4:5:6:7'                             => null,
+                '1:2:3:4:5:6:7:8:9'                         => null,
+                '1:2:3:4:5:1.0.0.1'                         => null,
+                '1:2:3:4:5:6:7:1.0.0.1'                     => null,
 
-                '1111:2222:3333:aaaa:bbbb:cccc:1.0.0.1'     => '1111:2222:3333:aaaa:bbbb:cccc:1.0.0.1',
-                '1111:2222:3333:aaaa::1.0.0.1'              => '1111:2222:3333:aaaa::1.0.0.1',
-                '::3333:aaaa:bbbb:cccc:1.0.0.1'             => '::3333:aaaa:bbbb:cccc:1.0.0.1',
-                '1111:2222::bbbb:cccc:1.0.0.1'              => '1111:2222::bbbb:cccc:1.0.0.1',
+                '1:2:3:4:5:6:7:8:'                          => null,
+                '1:2:3:4:5:6:7:8::'                         => null,
+                ':1:2:3:4:5:6:7:8'                          => null,
+                '::1:2:3:4:5:6:7:8'                         => null,
 
-                '1111:2222:3333:aaaa:bbbb:cccc:1.0.0.256'   => null,
-                '1111:2222:3333:aaaa:bbbb:cccc:1.0.0.1.2'   => null,
-                '1111:2222:3333:aaaa:bbbb:gggg:1.0.0.1'     => null,
-                '1111:2222:3333:aaaa:bbbb:cccc:::1.0.0.1'   => null,
-                '1111:2222:3333:1.0.0.1:bbbb:cccc'          => null
+                '1:2:3::5:6:7:8'                            => null,
+                '1::4::8'                                   => null,
+                ':::'                                       => null,
+
+                '1:2:3:4:5:6:1.0.0.256'                     => null,
+                '1:2:3:4:5:6:1.0.0.-1'                      => null
             ];
     }
     /** **********************************************************************
