@@ -78,8 +78,14 @@ class IpAddress
             $ipAddressExplode   = explode(':', $ipAddressConverted);
             $lastPart           = array_pop($ipAddressExplode);
             $ipAddressV4Postfix = self::normalizeV4($lastPart);
-            $ipAddressConverted = implode(':', $ipAddressExplode);
             $isDual             = true;
+
+            if (strlen($ipAddressExplode[count($ipAddressExplode) - 1]) <= 0)
+            {
+                $ipAddressExplode[] = '';
+            }
+
+            $ipAddressConverted = implode(':', $ipAddressExplode);
         }
         catch (NormalizingException $exception)
         {
@@ -141,7 +147,11 @@ class IpAddress
     private static function normalizeV6WithoutV4Part(string $ipAddress, bool $isDual) : string
     {
         $ipAddressExplode       = explode(':', $ipAddress);
-        $currentPartsCount      = count($ipAddressExplode);
+        $ipAddressNotEmptyParts = array_filter($ipAddressExplode, function($value)
+        {
+            return strlen($value) > 0;
+        });
+        $currentPartsCount      = count($ipAddressNotEmptyParts);
         $needPartsCount         = $isDual ? self::V6_DUAL_PARTS_COUNT : self::V6_PARTS_COUNT;
         $shortsCount            = (int) preg_match_all('/[\:]{2}/',     $ipAddress);
         $shortsIncorrectCount   = (int) preg_match_all('/[\:]{3,}/',    $ipAddress);
@@ -238,7 +248,7 @@ class IpAddress
             }
         }
 
-        if (strlen($longestValue) > 0)
+        if (strlen($longestValue) > 3)
         {
             $ipAddressPrepared = preg_replace
             (
@@ -261,7 +271,7 @@ class IpAddress
      ************************************************************************/
     private static function normalizeV6Segment(string $segment) : string
     {
-        $mask       = '/^[0-9a-zA-Z]{1,4}$/';
+        $mask       = '/^[0-9a-fA-F]{1,4}$/';
         $matches    = [];
 
         preg_match($mask, $segment, $matches);
