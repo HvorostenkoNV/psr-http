@@ -48,7 +48,7 @@ class UriTest extends TestCase
                 ':'     => '%3A',
                 ';'     => '%3B',
 
-                '~'     => '',
+                '~'     => '~',
                 '!'     => '%21',
                 '@'     => '%40',
                 '#'     => '%23',
@@ -367,19 +367,15 @@ class UriTest extends TestCase
         {
             if (!is_null($valueExpected))
             {
-                $result[]   = ["$value@site.com",         $valueExpected];
-                $result[]   = ["user:$value@site.com",    "user:$valueExpected"];
+                $result[] = ["http://$value@site.com", $valueExpected];
             }
             else
             {
-                $result[]   = ["$value@site.com",         ''];
-                $result[]   = ["user:$value@site.com",    'user'];
+                $result[] = ["http://$value@site.com", ''];
             }
         }
 
-        $result[] = ['user:password@site.com',  'user:password'];
-        $result[] = ['user:@site.com',          'user'];
-        $result[] = [':password@site.com',      ''];
+        $result[] = ['http://@site.com', ''];
 
         return $result;
     }
@@ -410,7 +406,7 @@ class UriTest extends TestCase
                 $result[] =
                     [
                         "http://user:password@$host:123/path/",
-                        'user:password'
+                        ''
                     ];
             }
         }
@@ -441,43 +437,23 @@ class UriTest extends TestCase
             {
                 $result[] =
                     [
-                        "http://$value:password@site.com:123/path/",
-                        "$valueExpected:password@site.com:123"
-                    ];
-                $result[] =
-                    [
-                        "http://user:$value@site.com:123/path/",
-                        "user:$valueExpected@site.com:123"
+                        "http://$value@site.com:123/path/",
+                        "$valueExpected@site.com:123"
                     ];
             }
             else
             {
                 $result[] =
                     [
-                        "http://$value:password@site.com:123/path/",
+                        "http://$value@site.com:123/path/",
                         'site.com:123'
-                    ];
-                $result[] =
-                    [
-                        "http://user:$value@site.com:123/path/",
-                        'user@site.com:123'
                     ];
             }
         }
 
         $result[] =
             [
-                'http://user:password@site.com:123/path/',
-                'user:password@site.com:123'
-            ];
-        $result[] =
-            [
-                'http://user:@site.com:123/path/',
-                'user@site.com:123'
-            ];
-        $result[] =
-            [
-                'http://:password@site.com:123/path/',
+                'http://@site.com:123/path/',
                 'site.com:123'
             ];
         $result[] =
@@ -487,8 +463,8 @@ class UriTest extends TestCase
             ];
         $result[] =
             [
-                'http://user:@site.com:/path/',
-                'user@site.com'
+                'http://@site.com:/path/',
+                'site.com'
             ];
 
         return $result;
@@ -561,10 +537,9 @@ class UriTest extends TestCase
     {
         $allowedSpecialChars    = self::SCHEME_ALLOWED_SPECIAL_CHARS;
         $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
-        $incorrectSpecialChars  = array_keys(self::SPECIAL_CHARS);
         $incorrectSpecialChars  = array_filter
         (
-            $incorrectSpecialChars,
+            array_keys(self::SPECIAL_CHARS),
             function($char) use ($allowedSpecialChars,  $technicalSpecialChars)
             {
                 return
@@ -617,14 +592,9 @@ class UriTest extends TestCase
 
         foreach ($ipAddressesV6ValuesRaw as $key => $value)
         {
-            if (!is_null($value))
-            {
-                $ipAddressesV6Values["[$key]"]  = "[$value]";
-            }
-            else
-            {
-                $ipAddressesV6Values["[$key]"]  = null;
-            }
+            $ipAddressesV6Values["[$key]"] = !is_null($value)
+                ? "[$value]"
+                : null;
         }
 
         return array_merge
@@ -644,10 +614,9 @@ class UriTest extends TestCase
     {
         $allowedSpecialChars    = self::DOMAIN_NAME_ALLOWED_SPECIAL_CHARS;
         $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
-        $incorrectSpecialChars  = array_keys(self::SPECIAL_CHARS);
         $incorrectSpecialChars  = array_filter
         (
-            $incorrectSpecialChars,
+            array_keys(self::SPECIAL_CHARS),
             function($char) use ($allowedSpecialChars,  $technicalSpecialChars)
             {
                 return
@@ -836,43 +805,42 @@ class UriTest extends TestCase
     private function getUserInfoValues() : array
     {
         $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
-        $otherSpecialChars      = array_keys(self::SPECIAL_CHARS);
-        $otherSpecialChars      = array_filter
+        $specialChars           = array_filter
         (
-            $otherSpecialChars,
+            array_keys(self::SPECIAL_CHARS),
             function($char) use ($technicalSpecialChars)
             {
                 return !in_array($char, $technicalSpecialChars);
             }
         );
-        $result         =
+        $result                 =
             [
-                'user'      => 'user',
-                'login'     => 'login',
-                'password'  => 'password',
+                'login:password'    => 'login:password',
+                'login'             => 'login',
+                ':password'         => null,
 
-                'Value'     => 'Value',
-                'VALUE'     => 'VALUE',
-                'vAlUe'     => 'vAlUe',
+                'Login:Password'    => 'Login:Password',
+                'LOGIN:PASSWORD'    => 'LOGIN:PASSWORD',
+                'lOgIn:PasSwOrD'    => 'lOgIn:PasSwOrD',
 
-                'value10'   => 'value10',
-                '10value'   => '10value',
+                'login10'           => 'login10',
+                '10login'           => '10login',
 
-                'value '    => 'value%20',
-                ' value'    => '%20value',
-                'v a l u e' => 'v%20a%20l%20u%20e'
+                'login '            => 'login%20',
+                ' login'            => '%20login',
+                'l o g i n'         => 'l%20o%20g%20i%20n'
             ];
 
-        foreach ($otherSpecialChars as $char)
+        foreach ($specialChars as $char)
         {
-            $charEncoded                    = self::SPECIAL_CHARS[$char];
-            $result["value{$charEncoded}"]  = "value{$charEncoded}";
+            $charEncoded                                    = self::SPECIAL_CHARS[$char];
+            $result["{$char}login{$char}"]                  = "{$charEncoded}login{$charEncoded}";
+            $result["{$charEncoded}login{$charEncoded}"]    = "{$charEncoded}login{$charEncoded}";
         }
-        foreach ($otherSpecialChars as $char)
+        foreach ($technicalSpecialChars as $char)
         {
-            $charEncoded                    = self::SPECIAL_CHARS[$char];
-            $result["value{$char}"]         = "value{$charEncoded}";
-            $result["value{$charEncoded}"]  = "value{$charEncoded}";
+            $charEncoded                                    = self::SPECIAL_CHARS[$char];
+            $result["{$charEncoded}login{$charEncoded}"]    = "{$charEncoded}login{$charEncoded}";
         }
 
         return $result;
@@ -887,10 +855,9 @@ class UriTest extends TestCase
     {
         $allowedSpecialChars    = self::PATH_ALLOWED_SPECIAL_CHARS;
         $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
-        $otherSpecialChars      = array_keys(self::SPECIAL_CHARS);
-        $otherSpecialChars      = array_filter
+        $specialChars           = array_filter
         (
-            $otherSpecialChars,
+            array_keys(self::SPECIAL_CHARS),
             function($char) use ($allowedSpecialChars, $technicalSpecialChars)
             {
                 return
@@ -922,7 +889,7 @@ class UriTest extends TestCase
             $charEncoded                    = urlencode($char);
             $result["/path{$charEncoded}/"] = "/path{$charEncoded}/";
         }
-        foreach ($otherSpecialChars as $char)
+        foreach ($specialChars as $char)
         {
             $charEncoded                    = urlencode($char);
             $result["/path{$char}/"]        = "/path{$charEncoded}/";
@@ -941,10 +908,9 @@ class UriTest extends TestCase
     {
         $allowedSpecialChars    = self::QUERY_ALLOWED_SPECIAL_CHARS;
         $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
-        $otherSpecialChars      = array_keys(self::SPECIAL_CHARS);
         $otherSpecialChars      = array_filter
         (
-            $otherSpecialChars,
+            array_keys(self::SPECIAL_CHARS),
             function($char) use ($allowedSpecialChars, $technicalSpecialChars)
             {
                 return

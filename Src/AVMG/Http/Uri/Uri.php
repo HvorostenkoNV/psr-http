@@ -9,6 +9,9 @@ use
     Psr\Http\Message\UriInterface,
     AVMG\Http\Helper\Scheme,
     AVMG\Http\Helper\Host,
+    AVMG\Http\Helper\Port,
+    AVMG\Http\Helper\UriUserInfo,
+    AVMG\Http\Helper\UriPath,
     AVMG\Http\Helper\UriParams;
 /** ***********************************************************************************************
  * PSR-7 UriInterface implementation.
@@ -22,8 +25,7 @@ class Uri implements UriInterface
         $scheme     = '',
         $host       = '',
         $port       = null,
-        $user       = '',
-        $password   = '',
+        $userInfo   = '',
         $path       = '',
         $query      = '',
         $fragment   = '';
@@ -59,7 +61,7 @@ class Uri implements UriInterface
         try
         {
             $port       = (int) ($uriData['port'] ?? 0);
-            $this->port = UriParams::normalizePort($port);
+            $this->port = Port::normalize($port);
         }
         catch (NormalizingException $exception)
         {
@@ -68,18 +70,8 @@ class Uri implements UriInterface
 
         try
         {
-            $userName   = (string) ($uriData['user'] ?? '');
-            $this->user = UriParams::normalizeUserInfo($userName);
-        }
-        catch (NormalizingException $exception)
-        {
-
-        }
-
-        try
-        {
-            $userPass       = (string) ($uriData['pass'] ?? '');
-            $this->password = UriParams::normalizeUserInfo($userPass);
+            $userInfo       = (string) ($uriData['userInfo'] ?? '');
+            $this->userInfo = UriUserInfo::normalize($userInfo);
         }
         catch (NormalizingException $exception)
         {
@@ -89,7 +81,7 @@ class Uri implements UriInterface
         try
         {
             $path       = (string) ($uriData['path'] ?? '');
-            $this->path = UriParams::normalizePath($path);
+            $this->path = UriPath::normalize($path);
         }
         catch (NormalizingException $exception)
         {
@@ -156,31 +148,25 @@ class Uri implements UriInterface
      ************************************************************************/
     public function getAuthority() : string
     {
-        $userInfo       = $this->getUserInfo();
-        $host           = $this->getHost();
-        $port           = $this->getPort();
-        $userInfoExist  = strlen($userInfo) > 0;
-        $hostExist      = strlen($host) > 0;
-        $portExist      = !is_null($port);
+        $userInfo   = $this->getUserInfo();
+        $host       = $this->getHost();
+        $port       = $this->getPort();
+        $result     = $host;
 
-        if ($userInfoExist && $hostExist && $portExist)
+        if (strlen($result) <= 0)
         {
-            return "$userInfo@$host:$port";
+            return '';
         }
-        if ($userInfoExist && $hostExist && !$portExist)
+        if (strlen($userInfo) > 0)
         {
-            return "$userInfo@$host";
+            $result = "$userInfo@$result";
         }
-        if (!$userInfoExist && $hostExist && $portExist)
+        if (!is_null($port))
         {
-            return "$host:$port";
-        }
-        if ($userInfoExist && !$hostExist && $portExist)
-        {
-            return $userInfo;
+            $result = "$result:$port";
         }
 
-        return $host;
+        return $result;
     }
     /** **********************************************************************
      * Retrieve the user information component of the URI.
@@ -199,9 +185,7 @@ class Uri implements UriInterface
      ************************************************************************/
     public function getUserInfo() : string
     {
-        return strlen($this->user) > 0 && strlen($this->password) > 0
-            ? "{$this->user}:{$this->password}"
-            : $this->user;
+        return $this->userInfo;
     }
     /** **********************************************************************
      * Retrieve the host component of the URI.
@@ -239,7 +223,7 @@ class Uri implements UriInterface
         $port   = $this->port;
         $scheme = $this->getScheme();
 
-        return is_null($port) || UriParams::isStandardPort($port, $scheme)
+        return is_null($port) || Port::isStandard($port, $scheme)
             ? null
             : $port;
     }
@@ -370,20 +354,11 @@ class Uri implements UriInterface
 
         try
         {
-            $newInstance->user = UriParams::normalizeUserInfo($user);
+            $newInstance->userInfo = UriUserInfo::normalizeFromParts($user, $password);
         }
         catch (NormalizingException $exception)
         {
-            $newInstance->user = '';
-        }
-
-        try
-        {
-            $newInstance->password = UriParams::normalizeUserInfo($password);
-        }
-        catch (NormalizingException $exception)
-        {
-            $newInstance->password = '';
+            $newInstance->userInfo = '';
         }
 
         return $newInstance;
@@ -438,7 +413,7 @@ class Uri implements UriInterface
         try
         {
             $newInstance = clone $this;
-            $newInstance->port = UriParams::normalizePort($port);
+            $newInstance->port = Port::normalize($port);
 
             return $newInstance;
         }
@@ -475,7 +450,7 @@ class Uri implements UriInterface
         try
         {
             $newInstance = clone $this;
-            $newInstance->path = UriParams::normalizePath($path);
+            $newInstance->path = UriPath::normalize($path);
 
             return $newInstance;
         }
@@ -603,8 +578,7 @@ class Uri implements UriInterface
                 'scheme'    => '',
                 'host'      => '',
                 'port'      => '',
-                'user'      => '',
-                'pass'      => '',
+                'userInfo'  => '',
                 'path'      => '',
                 'query'     => '',
                 'fragment'  => ''
@@ -628,25 +602,22 @@ class Uri implements UriInterface
             $uriData['query']   = array_pop($explode);
             $uriFiltered        = implode('?', $explode);
         }
-        if (strpos($uriFiltered, '@') !== false)
-        {
-            $explode            = explode('@', $uriFiltered);
-            $userInfo           = array_shift($explode);
-            $userInfoExplode    = explode(':', $userInfo);
-            $uriData['user']    = array_shift($userInfoExplode);
-            $uriData['pass']    = implode(':', $userInfoExplode);
-            $uriFiltered        = implode('@', $explode);
-        }
         if (strpos($uriFiltered, '/') !== false)
         {
             $explode            = explode('/', $uriFiltered);
-            $uriData['path']    = '/'.array_pop($explode);
-            $uriFiltered        = implode('/', $explode);
+            $uriFiltered        = array_shift($explode);
+            $uriData['path']    = '/'.implode('/', $explode);
+        }
+        if (strpos($uriFiltered, '@') !== false)
+        {
+            $explode                = explode('@', $uriFiltered);
+            $uriData['userInfo']    = array_shift($explode);
+            $uriFiltered            = implode('@', $explode);
         }
         if
         (
             (
-                strpos($uriFiltered, '[')   !== false &&
+                strpos($uriFiltered, '[')   === 0 &&
                 strpos($uriFiltered, ']:')  !== false
             ) ||
             (

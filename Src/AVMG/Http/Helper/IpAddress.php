@@ -69,23 +69,22 @@ class IpAddress
      ************************************************************************/
     public static function normalizeV6(string $ipAddress) : string
     {
-        $ipAddressConverted = trim($ipAddress);
-        $ipAddressV4Postfix = '';
+        $ipAddressV6Part    = trim($ipAddress);
+        $ipAddressV4Part    = '';
         $isDual             = false;
 
         try
         {
-            $ipAddressExplode   = explode(':', $ipAddressConverted);
+            $ipAddressExplode   = explode(':', $ipAddressV6Part);
             $lastPart           = array_pop($ipAddressExplode);
-            $ipAddressV4Postfix = self::normalizeV4($lastPart);
+            $ipAddressV4Part    = self::normalizeV4($lastPart);
             $isDual             = true;
+            $ipAddressV6Part    = implode(':', $ipAddressExplode);
 
-            if (strlen($ipAddressExplode[count($ipAddressExplode) - 1]) <= 0)
+            if ($ipAddressV6Part[strlen($ipAddressV6Part) - 1] == ':')
             {
-                $ipAddressExplode[] = '';
+                $ipAddressV6Part .= ':';
             }
-
-            $ipAddressConverted = implode(':', $ipAddressExplode);
         }
         catch (NormalizingException $exception)
         {
@@ -94,46 +93,23 @@ class IpAddress
 
         try
         {
-            $ipAddressConverted = self::normalizeV6WithoutV4Part($ipAddressConverted, $isDual);
+            $ipAddressV6Part = self::normalizeV6WithoutV4Part($ipAddressV6Part, $isDual);
         }
         catch (NormalizingException $exception)
         {
             throw $exception;
         }
 
-        return $isDual
-            ? "$ipAddressConverted:$ipAddressV4Postfix"
-            : $ipAddressConverted;
-    }
-    /** **********************************************************************
-     * Normalize the v4 IP address segment.
-     *
-     * @param   string $segment             V4 IP address segment.
-     *
-     * @return  string                      Normalized v4 IP address segment.
-     * @throws  NormalizingException        Normalizing error.
-     ************************************************************************/
-    private static function normalizeV4Segment(string $segment) : string
-    {
-        if (!is_numeric($segment))
+        if ($isDual)
         {
-            throw new NormalizingException("\"$segment\" is not numeric value");
+            return
+                $ipAddressV6Part[strlen($ipAddressV6Part) - 1] == ':' &&
+                $ipAddressV6Part[strlen($ipAddressV6Part) - 2] == ':'
+                    ? $ipAddressV6Part.$ipAddressV4Part
+                    : "$ipAddressV6Part:$ipAddressV4Part";
         }
 
-        $segmentNumeric = (int) $segment;
-        $minValue       = self::V4_PART_MIN_VALUE;
-        $maxValue       = self::V4_PART_MAX_VALUE;
-
-        if ($segmentNumeric < self::V4_PART_MIN_VALUE)
-        {
-            throw new NormalizingException("\"$segmentNumeric\" less than $minValue");
-        }
-        if ($segmentNumeric > self::V4_PART_MAX_VALUE)
-        {
-            throw new NormalizingException("\"$segmentNumeric\" grater than $maxValue");
-        }
-
-        return (string) $segmentNumeric;
+        return $ipAddressV6Part;
     }
     /** **********************************************************************
      * Normalize the v6 IP address without v4 IP address postfix.
@@ -260,6 +236,36 @@ class IpAddress
         }
 
         return $ipAddressPrepared;
+    }
+    /** **********************************************************************
+     * Normalize the v4 IP address segment.
+     *
+     * @param   string $segment             V4 IP address segment.
+     *
+     * @return  string                      Normalized v4 IP address segment.
+     * @throws  NormalizingException        Normalizing error.
+     ************************************************************************/
+    private static function normalizeV4Segment(string $segment) : string
+    {
+        if (!is_numeric($segment))
+        {
+            throw new NormalizingException("\"$segment\" is not numeric value");
+        }
+
+        $segmentNumeric = (int) $segment;
+        $minValue       = self::V4_PART_MIN_VALUE;
+        $maxValue       = self::V4_PART_MAX_VALUE;
+
+        if ($segmentNumeric < self::V4_PART_MIN_VALUE)
+        {
+            throw new NormalizingException("\"$segmentNumeric\" less than $minValue");
+        }
+        if ($segmentNumeric > self::V4_PART_MAX_VALUE)
+        {
+            throw new NormalizingException("\"$segmentNumeric\" grater than $maxValue");
+        }
+
+        return (string) $segmentNumeric;
     }
     /** **********************************************************************
      * Normalize the v6 IP address segment.
