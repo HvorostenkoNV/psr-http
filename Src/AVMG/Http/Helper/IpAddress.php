@@ -28,16 +28,28 @@ class IpAddress
      ************************************************************************/
     public static function normalizeV4(string $ipAddress) : string
     {
-        $ipAddressPrepared  = trim($ipAddress);
+        $ipAddressPrepared  = trim($ipAddress, '.');
         $ipAddressExplode   = explode('.', $ipAddressPrepared);
         $partsMaxCount      = self::V4_PARTS_COUNT;
 
-        if (count($ipAddressExplode) != self::V4_PARTS_COUNT)
+        if (count($ipAddressExplode) > self::V4_PARTS_COUNT)
         {
             throw new NormalizingException
             (
                 "ip address v4 \"$ipAddress\" contains more than $partsMaxCount parts"
             );
+        }
+        if (count($ipAddressExplode) == 1)
+        {
+            throw new NormalizingException
+            (
+                "ip address v4 \"$ipAddress\" is not ip address v4"
+            );
+        }
+
+        while (count($ipAddressExplode) < self::V4_PARTS_COUNT)
+        {
+            array_splice($ipAddressExplode, count($ipAddressExplode) - 1, 0, '0');
         }
 
         foreach ($ipAddressExplode as $index => $part)
@@ -50,7 +62,7 @@ class IpAddress
             {
                 throw new NormalizingException
                 (
-                    "ip address v4 segment validation error: {$exception->getMessage()}",
+                    "ip address v4 segment validation error, \"{$exception->getMessage()}\"",
                     0,
                     $exception
                 );
@@ -185,7 +197,7 @@ class IpAddress
             {
                 throw new NormalizingException
                 (
-                    "ip address v6 segment validation error: {$exception->getMessage()}",
+                    "ip address v6 segment validation error, \"{$exception->getMessage()}\"",
                     0,
                     $exception
                 );

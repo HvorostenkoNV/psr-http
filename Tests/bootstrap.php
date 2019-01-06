@@ -26,3 +26,23 @@ spl_autoload_register(function($className)
         }
     }
 });
+spl_autoload_register(function($className)
+{
+    $classNameExplode   = explode('\\Tests\\', $className);
+    $classNamePart      = $classNameExplode[1] ??'';
+    $classNamePart      = str_replace('\\', DIRECTORY_SEPARATOR, $classNamePart);
+    $classFilePath      = __DIR__.DIRECTORY_SEPARATOR.$classNamePart.'.php';
+    $classFile          = new SplFileInfo($classFilePath);
+
+    if ($classFile->isFile() && $classFile->getExtension() == 'php')
+    {
+        try
+        {
+            require $classFile->getPathname();
+        }
+        catch (Throwable $exception)
+        {
+
+        }
+    }
+});

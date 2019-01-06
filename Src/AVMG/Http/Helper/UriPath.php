@@ -12,6 +12,24 @@ use AVMG\Http\Exception\NormalizingException;
  *************************************************************************************************/
 class UriPath
 {
+    private const UNCODED_SPECIAL_CHARS =
+        [
+            '\''    => '%27',
+            '['     => '%5B',
+            ']'     => '%5D',
+            '('     => '%28',
+            ')'     => '%29',
+            '+'     => '%2B',
+            '='     => '%3D',
+            '*'     => '%2A',
+            '%'     => '%25',
+            ','     => '%2C',
+            ':'     => '%3A',
+            '!'     => '%21',
+            '@'     => '%40',
+            '$'     => '%24',
+            '&'     => '%26'
+        ];
     /** **********************************************************************
      * Normalize the URI path.
      *
@@ -34,7 +52,12 @@ class UriPath
                 }
                 catch (NormalizingException $exception)
                 {
-                    throw $exception;
+                    throw new NormalizingException
+                    (
+                        "path part validation error, \"{$exception->getMessage()}\"",
+                        0,
+                        $exception
+                    );
                 }
             }
         }
@@ -51,6 +74,18 @@ class UriPath
      ************************************************************************/
     private static function normalizePart(string $part) : string
     {
-        throw new NormalizingException;
+        if (strlen($part) <= 0)
+        {
+            throw new NormalizingException('value is empty string');
+        }
+
+        $partNormalized = rawurlencode(rawurldecode($part));
+
+        foreach (self::UNCODED_SPECIAL_CHARS as $char => $charEncoded)
+        {
+            $partNormalized = str_replace($charEncoded, $char, $partNormalized);
+        }
+
+        return $partNormalized;
     }
 }

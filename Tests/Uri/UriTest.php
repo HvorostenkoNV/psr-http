@@ -5,6 +5,7 @@ namespace AVMG\Http\Tests\Uri;
 
 use
     Throwable,
+    InvalidArgumentException,
     PHPUnit\Framework\TestCase,
     AVMG\Http\Uri\Uri;
 /** ***********************************************************************************************
@@ -15,947 +16,1078 @@ use
  *************************************************************************************************/
 class UriTest extends TestCase
 {
-    private const
-        SPECIAL_CHARS                       =
-            [
-                '`'     => '%60',
-                '\''    => '%27',
-                '"'     => '%22',
-
-                '['     => '%5B',
-                ']'     => '%5D',
-                '{'     => '%7B',
-                '}'     => '%7D',
-                '('     => '%28',
-                ')'     => '%29',
-
-                '\\'    => '%5C',
-                '|'     => '%7C',
-                '/'     => '%2F',
-
-                '+'     => '%2B',
-                '-'     => '-',
-                '='     => '%3D',
-                '*'     => '%2A',
-                '%'     => '%25',
-
-                '^'     => '%5E',
-                '<'     => '%3C',
-                '>'     => '%3E',
-
-                ','     => '%2C',
-                '.'     => '.',
-                ':'     => '%3A',
-                ';'     => '%3B',
-
-                '~'     => '~',
-                '!'     => '%21',
-                '@'     => '%40',
-                '#'     => '%23',
-                '№'     => '%E2%84%96',
-                '$'     => '%24',
-                '&'     => '%26',
-                '?'     => '%3F',
-                '_'     => '_'
-            ],
-        URI_SEPARATING_CHARS                =
-            [
-                '/', '?', '&', ':', '@', '#'
-            ],
-        SCHEME_ALLOWED_SPECIAL_CHARS        =
-            [
-                '+', '.', '-'
-            ],
-        DOMAIN_NAME_ALLOWED_SPECIAL_CHARS   =
-            [
-                '-', '.'
-            ],
-        PORT_MIN_VALUE                      = 1,
-        PORT_MAX_VALUE                      = 65535,
-        SCHEMES_STANDARD_PORTS              =
-            [
-                'http'  => 80,
-                'https' => 443
-            ],
-        PATH_ALLOWED_SPECIAL_CHARS          =
-            [
-                '-', '.', '_', '~',
-                '!', '$', '&', '\'',
-                '(', ')', '*', '+',
-                ',', ';', '=', ':'
-            ],
-        QUERY_ALLOWED_SPECIAL_CHARS         =
-            [
-                '*', '-', '.', '_', '~'
-            ];
+    private const SCHEMES_STANDARD_PORTS =
+        [
+            'http'  => 80,
+            'https' => 443
+        ];
     /** **********************************************************************
-     * Testing method "Uri::getScheme".
+     * Testing Uri setters methods return new instance.
      *
      * @test
-     * @dataProvider    getSchemeDataProvider
      *
-     * @param           string  $uri                URI.
+     * @return  void
+     * @throws  Throwable
+     ************************************************************************/
+    public function settersMethodsReturnNewInstance() : void
+    {
+        $methods =
+            [
+                'withScheme'    => ['scheme'],
+                'withUserInfo'  => ['user', 'password'],
+                'withHost'      => ['site.com'],
+                'withPort'      => [50],
+                'withPath'      => ['/path/'],
+                'withQuery'     => ['key=value'],
+                'withFragment'  => ['fragment']
+            ];
+
+        foreach ($methods as $methodName => $methodArguments)
+        {
+            $uri    = new Uri;
+            $uriNew = call_user_func_array([$uri, $methodName], $methodArguments);
+
+            self::assertNotEquals
+            (
+                $uri,
+                $uriNew,
+                "Method \"Uri::$methodName\" returned unexpected result.\n".
+                "Expecting result must be new instance of Uri.\n".
+                "Caught result is the same instance.\n"
+            );
+        }
+    }
+    /** **********************************************************************
+     * Testing method "Uri::withScheme" throws exception with scheme invalid values.
+     *
+     * @test
+     * @dataProvider    schemeInvalidValuesDataProvider
+     *
+     * @param           string $scheme              Scheme.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function withSchemeExceptionThrowing(string $scheme) : void
+    {
+        try
+        {
+            (new Uri)->withScheme($scheme);
+
+            self::fail
+            (
+                "Method \"Uri::withScheme\" threw no expected exception.\n".
+                "Expecting \"InvalidArgumentException\" exception on setting scheme \"$scheme\".\n".
+                "Caught no exception.\n"
+            );
+        }
+        catch (InvalidArgumentException $exception)
+        {
+            self::assertTrue(true);
+        }
+    }
+    /** **********************************************************************
+     * Testing method "Uri::getScheme" provides valid normalized value.
+     *
+     * @test
+     * @dataProvider    schemeValidValuesDataProvider
+     *
+     * @param           string  $providedScheme     Provided scheme.
      * @param           string  $expectedScheme     Expected scheme.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function getScheme(string $uri, string $expectedScheme) : void
+    public function getSchemeValueProviding(string $providedScheme, string $expectedScheme) : void
     {
-        $caughtScheme = (new Uri($uri))->getScheme();
+        try
+        {
+            $caughtScheme = (new Uri)->withScheme($providedScheme)->getScheme();
 
-        self::assertEquals
-        (
-            $expectedScheme,
-            $caughtScheme,
-            "Method \"Uri::getScheme\" returned unexpected result.\n".
-            "Expected scheme form uri \"$uri\" is \"$expectedScheme\".\n".
-            "Caught scheme is \"$caughtScheme\".\n"
-        );
+            self::assertEquals
+            (
+                $expectedScheme,
+                $caughtScheme,
+                "Method \"Uri::getScheme\" returned unexpected result.\n".
+                "Expecting result after setting scheme \"$providedScheme\" is \"$expectedScheme\".\n".
+                "Caught result is \"$caughtScheme\".\n"
+            );
+        }
+        catch (InvalidArgumentException $exception)
+        {
+            self::fail
+            (
+                "Method \"Uri::withScheme\" threw unexpected exception.\n".
+                "Expecting no exception on setting scheme \"$providedScheme\".\n".
+                "Caught exception with message \"{$exception->getMessage()}\".\n"
+            );
+        }
     }
     /** **********************************************************************
-     * Testing method "Uri::getHost".
+     * Testing method "Uri::withHost" throws exception with scheme invalid values.
      *
      * @test
-     * @dataProvider    getHostDataProvider
+     * @dataProvider    hostInvalidValuesDataProvider
      *
-     * @param           string  $uri                URI.
+     * @param           string $host                Host.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function withHostExceptionThrowing(string $host) : void
+    {
+        try
+        {
+            (new Uri)->withHost($host);
+
+            self::fail
+            (
+                "Method \"Uri::withHost\" threw no expected exception.\n".
+                "Expecting \"InvalidArgumentException\" exception on setting host \"$host\".\n".
+                "Caught no exception.\n"
+            );
+        }
+        catch (InvalidArgumentException $exception)
+        {
+            self::assertTrue(true);
+        }
+    }
+    /** **********************************************************************
+     * Testing method "Uri::getHost" provides valid normalized value.
+     *
+     * @test
+     * @dataProvider    hostValidValuesDataProvider
+     *
+     * @param           string  $providedHost       Provided host.
      * @param           string  $expectedHost       Expected host.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function getHost(string $uri, string $expectedHost) : void
+    public function getHostValueProviding(string $providedHost, string $expectedHost) : void
     {
-        $caughtHost = (new Uri($uri))->getHost();
+        try
+        {
+            $caughtHost = (new Uri)->withHost($providedHost)->getHost();
 
-        self::assertEquals
-        (
-            $expectedHost,
-            $caughtHost,
-            "Method \"Uri::getHost\" returned unexpected result.\n".
-            "Expected host form uri \"$uri\" is \"$expectedHost\".\n".
-            "Caught host is \"$caughtHost\".\n"
-        );
+            self::assertEquals
+            (
+                $expectedHost,
+                $caughtHost,
+                "Method \"Uri::getHost\" returned unexpected result.\n".
+                "Expecting result after setting host \"$providedHost\" is \"$expectedHost\".\n".
+                "Caught result is \"$caughtHost\".\n"
+            );
+        }
+        catch (InvalidArgumentException $exception)
+        {
+            self::fail
+            (
+                "Method \"Uri::withHost\" threw unexpected exception.\n".
+                "Expecting no exception on setting host \"$providedHost\".\n".
+                "Caught exception with message \"{$exception->getMessage()}\".\n"
+            );
+        }
     }
     /** **********************************************************************
-     * Testing method "Uri::getPort".
+     * Testing method "Uri::withPort" throws exception with scheme invalid values.
      *
      * @test
-     * @dataProvider    getPortDataProvider
+     * @dataProvider    portInvalidValuesDataProvider
      *
-     * @param           string  $uri                URI.
+     * @param           int $port                   Port.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function withPortExceptionThrowing(int $port) : void
+    {
+        try
+        {
+            (new Uri)->withPort($port);
+
+            self::fail
+            (
+                "Method \"Uri::withPort\" threw no expected exception.\n".
+                "Expecting \"InvalidArgumentException\" exception on setting port \"$port\".\n".
+                "Caught no exception.\n"
+            );
+        }
+        catch (InvalidArgumentException $exception)
+        {
+            self::assertTrue(true);
+        }
+    }
+    /** **********************************************************************
+     * Testing method "Uri::getPort" provides valid normalized value.
+     *
+     * @test
+     * @dataProvider    portValidValuesDataProvider
+     *
+     * @param           int     $providedPort       Provided port.
      * @param           mixed   $expectedPort       Expected port.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function getPort(string $uri, $expectedPort) : void
+    public function getPortValueProviding(int $providedPort, $expectedPort) : void
     {
-        $caughtPort = (new Uri($uri))->getPort();
+        try
+        {
+            $caughtPort = (new Uri)->withPort($providedPort)->getPort();
 
-        self::assertEquals
-        (
-            $expectedPort,
-            $caughtPort,
-            "Method \"Uri::getPort\" returned unexpected result.\n".
-            "Expected port form uri \"$uri\" is \"$expectedPort\".\n".
-            "Caught port is \"$caughtPort\".\n"
-        );
+            self::assertEquals
+            (
+                $expectedPort,
+                $caughtPort,
+                "Method \"Uri::getPort\" returned unexpected result.\n".
+                "Expecting result after setting port \"$providedPort\" is \"$expectedPort\".\n".
+                "Caught result is \"$caughtPort\".\n"
+            );
+        }
+        catch (InvalidArgumentException $exception)
+        {
+            self::fail
+            (
+                "Method \"Uri::withPort\" threw unexpected exception.\n".
+                "Expecting no exception on setting port \"$providedPort\".\n".
+                "Caught exception with message \"{$exception->getMessage()}\".\n"
+            );
+        }
     }
     /** **********************************************************************
-     * Testing method "Uri::getUserInfo".
+     * Testing method "Uri::getPort" provides null if port is standard for given scheme.
      *
      * @test
-     * @dataProvider    getUserInfoDataProvider
+     * @dataProvider    portStandardValuesDataProvider
      *
-     * @param           string  $uri                URI.
-     * @param           string  $expectedUserInfo   Expected user info.
+     * @param           string  $scheme             Scheme.
+     * @param           int     $port               Port.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function getUserInfo(string $uri, string $expectedUserInfo) : void
+    public function getPortValueProvidingForStandardPort(string $scheme, int $port) : void
     {
-        $caughtUserInfo = (new Uri($uri))->getUserInfo();
+        try
+        {
+            $caughtPort = (new Uri)
+                ->withScheme($scheme)
+                ->withPort($port)
+                ->getPort();
+
+            self::assertEquals
+            (
+                null,
+                $caughtPort,
+                "Method \"Uri::getPort\" returned unexpected result.\n".
+                "Expecting result after setting scheme \"$scheme\" and port \"$port\" is null.\n".
+                "Caught result is \"$caughtPort\".\n"
+            );
+        }
+        catch (InvalidArgumentException $exception)
+        {
+            self::fail
+            (
+                "Method \"Uri::withScheme\" or \"Uri::withPort\" threw unexpected exception.\n".
+                "Expecting no exception on setting scheme \"$scheme\" and port \"$port\".\n".
+                "Caught exception with message \"{$exception->getMessage()}\".\n"
+            );
+        }
+    }
+    /** **********************************************************************
+     * Testing method "Uri::getUserInfo" provides valid normalized value.
+     *
+     * @test
+     * @dataProvider    userInfoDataProvider
+     *
+     * @param           string  $login              Login.
+     * @param           string  $password           Password.
+     * @param           string  $expectedInfo       Expected user info.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function getUserInfoValueProviding(string $login, string $password, string $expectedInfo) : void
+    {
+        $caughtInfo = (new Uri)->withUserInfo($login, $password)->getUserInfo();
 
         self::assertEquals
         (
-            $expectedUserInfo,
-            $caughtUserInfo,
+            $expectedInfo,
+            $caughtInfo,
             "Method \"Uri::getUserInfo\" returned unexpected result.\n".
-            "Expected user info form uri \"$uri\" is \"$expectedUserInfo\".\n".
-            "Caught user info is \"$caughtUserInfo\".\n"
+            "Expecting result after setting login \"$login\" and password \"$password\" is \"$expectedInfo\".\n".
+            "Caught result is \"$caughtInfo\".\n"
         );
     }
     /** **********************************************************************
-     * Testing method "Uri::getAuthority".
+     * Testing method "Uri::getAuthority" provides valid normalized value.
      *
      * @test
-     * @dataProvider    getAuthorityDataProvider
+     * @dataProvider    authorityDataProvider
      *
-     * @param           string  $uri                URI.
+     * @param           string  $login              Login.
+     * @param           string  $password           Password.
+     * @param           string  $host               Host.
+     * @param           int     $port               Port.
      * @param           string  $expectedAuthority  Expected authority.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function getAuthority(string $uri, string $expectedAuthority) : void
+    public function getAuthorityValueProviding
+    (
+        string  $login,
+        string  $password,
+        string  $host,
+        int     $port,
+        string  $expectedAuthority
+    ) : void
     {
-        $caughtAuthority = (new Uri($uri))->getAuthority();
+        $uri    = new Uri;
+        $uri    = $uri->withUserInfo($login, $password);
+
+        try
+        {
+            $uri = $uri->withHost($host);
+        }
+        catch (InvalidArgumentException $exception)
+        {
+
+        }
+        try
+        {
+            $uri = $uri->withPort($port);
+        }
+        catch (InvalidArgumentException $exception)
+        {
+
+        }
+
+        $caughtAuthority = $uri->getAuthority();
 
         self::assertEquals
         (
             $expectedAuthority,
             $caughtAuthority,
             "Method \"Uri::getAuthority\" returned unexpected result.\n".
-            "Expected authority form uri \"$uri\" is \"$expectedAuthority\".\n".
+            "Expecting result after setting login \"$login\", password \"$password\", ".
+            "host \"$host\" and port \"$port\" is \"$expectedAuthority\".\n".
             "Caught authority is \"$caughtAuthority\".\n"
         );
     }
     /** **********************************************************************
-     * Testing method "Uri::getPath".
+     * Testing method "Uri::withPath" throws exception with path invalid values.
      *
      * @test
-     * @dataProvider    getPathDataProvider
+     * @dataProvider    pathInvalidValuesDataProvider
      *
-     * @param           string  $uri                URI.
+     * @param           string $path                Path.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function withPathExceptionThrowing(string $path) : void
+    {
+        try
+        {
+            (new Uri)->withPath($path);
+
+            self::fail
+            (
+                "Method \"Uri::withPath\" threw no expected exception.\n".
+                "Expecting \"InvalidArgumentException\" exception on setting path \"$path\".\n".
+                "Caught no exception.\n"
+            );
+        }
+        catch (InvalidArgumentException $exception)
+        {
+            self::assertTrue(true);
+        }
+    }
+    /** **********************************************************************
+     * Testing method "Uri::getPath" provides valid normalized value.
+     *
+     * @test
+     * @dataProvider    pathValidValuesDataProvider
+     *
+     * @param           string  $providedPath       Provided path.
      * @param           string  $expectedPath       Expected path.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function getPath(string $uri, string $expectedPath) : void
+    public function getPathValueProviding(string $providedPath, string $expectedPath) : void
     {
-        $caughtPath = (new Uri($uri))->getPath();
+        try
+        {
+            $caughtPath = (new Uri)->withPath($providedPath)->getPath();
 
-        self::assertEquals
-        (
-            $expectedPath,
-            $caughtPath,
-            "Method \"Uri::getPath\" returned unexpected result.\n".
-            "Expected path form uri \"$uri\" is \"$expectedPath\".\n".
-            "Caught path is \"$caughtPath\".\n"
-        );
+            self::assertEquals
+            (
+                $expectedPath,
+                $caughtPath,
+                "Method \"Uri::getPath\" returned unexpected result.\n".
+                "Expecting result after setting path \"$providedPath\" is \"$expectedPath\".\n".
+                "Caught result is \"$caughtPath\".\n"
+            );
+        }
+        catch (InvalidArgumentException $exception)
+        {
+            self::fail
+            (
+                "Method \"Uri::withPath\" threw unexpected exception.\n".
+                "Expecting no exception on setting path \"$providedPath\".\n".
+                "Caught exception with message \"{$exception->getMessage()}\".\n"
+            );
+        }
     }
     /** **********************************************************************
-     * Testing method "Uri::getQuery".
+     * Testing method "Uri::withQuery" throws exception with query invalid values.
      *
      * @test
-     * @dataProvider    getQueryDataProvider
+     * @dataProvider    queryInvalidValuesDataProvider
      *
-     * @param           string  $uri                URI.
+     * @param           string $query               Query.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function withQueryExceptionThrowing(string $query) : void
+    {
+        try
+        {
+            (new Uri)->withQuery($query);
+
+            self::fail
+            (
+                "Method \"Uri::withQuery\" threw no expected exception.\n".
+                "Expecting \"InvalidArgumentException\" exception on setting query \"$query\".\n".
+                "Caught no exception.\n"
+            );
+        }
+        catch (InvalidArgumentException $exception)
+        {
+            self::assertTrue(true);
+        }
+    }
+    /** **********************************************************************
+     * Testing method "Uri::getQuery" provides valid normalized value.
+     *
+     * @test
+     * @dataProvider    queryValidValuesDataProvider
+     *
+     * @param           string  $providedQuery      Provided query.
      * @param           string  $expectedQuery      Expected query.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function getQuery(string $uri, string $expectedQuery) : void
+    public function getQueryValueProviding(string $providedQuery, string $expectedQuery) : void
     {
-        $caughtQuery = (new Uri($uri))->getQuery();
+        try
+        {
+            $caughtQuery = (new Uri)->withQuery($providedQuery)->getQuery();
+
+            self::assertEquals
+            (
+                $expectedQuery,
+                $caughtQuery,
+                "Method \"Uri::getQuery\" returned unexpected result.\n".
+                "Expecting result after setting query \"$providedQuery\" is \"$expectedQuery\".\n".
+                "Caught result is \"$caughtQuery\".\n"
+            );
+        }
+        catch (InvalidArgumentException $exception)
+        {
+            self::fail
+            (
+                "Method \"Uri::withQuery\" threw unexpected exception.\n".
+                "Expecting no exception on setting query \"$providedQuery\".\n".
+                "Caught exception with message \"{$exception->getMessage()}\".\n"
+            );
+        }
+    }
+    /** **********************************************************************
+     * Testing method "Uri::getFragment" provides valid normalized value.
+     *
+     * @test
+     * @dataProvider    fragmentDataProvider
+     *
+     * @param           string  $providedFragment   Provided fragment.
+     * @param           string  $expectedFragment   Expected fragment.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function getFragmentValueProviding(string $providedFragment, string $expectedFragment) : void
+    {
+        $caughtFragment = (new Uri)->withFragment($providedFragment)->getFragment();
 
         self::assertEquals
         (
-            $expectedQuery,
-            $caughtQuery,
-            "Method \"Uri::getQuery\" returned unexpected result.\n".
-            "Expected query form uri \"$uri\" is \"$expectedQuery\".\n".
-            "Caught query is \"$caughtQuery\".\n"
+            $expectedFragment,
+            $caughtFragment,
+            "Method \"Uri::getFragment\" returned unexpected result.\n".
+            "Expecting result after setting fragment \"$providedFragment\" is \"$expectedFragment\".\n".
+            "Caught result is \"$caughtFragment\".\n"
         );
     }
     /** **********************************************************************
-     * Data provider for method "getScheme".
+     * Testing method "Uri::__toString" provides valid normalized value.
+     *
+     * @test
+     * @dataProvider    uriDataProvider
+     *
+     * @param           string  $scheme             Scheme.
+     * @param           string  $login              Login.
+     * @param           string  $password           Password.
+     * @param           string  $host               Host.
+     * @param           int     $port               Port.
+     * @param           string  $path               Path.
+     * @param           string  $query              Query.
+     * @param           string  $fragment           Fragment.
+     * @param           string  $expectedUri        Expected uri string.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function toStringValueProviding
+    (
+        string  $scheme,
+        string  $login,
+        string  $password,
+        string  $host,
+        int     $port,
+        string  $path,
+        string  $query,
+        string  $fragment,
+        string  $expectedUri
+    ) : void
+    {
+        $uri = new Uri;
+
+        try
+        {
+            $uri = $uri->withScheme($scheme);
+        }
+        catch (InvalidArgumentException $exception)
+        {
+
+        }
+
+        $uri = $uri->withUserInfo($login, $password);
+
+        try
+        {
+            $uri = $uri->withHost($host);
+        }
+        catch (InvalidArgumentException $exception)
+        {
+
+        }
+
+        try
+        {
+            $uri = $uri->withPort($port);
+        }
+        catch (InvalidArgumentException $exception)
+        {
+
+        }
+
+        try
+        {
+            $uri = $uri->withPath($path);
+        }
+        catch (InvalidArgumentException $exception)
+        {
+
+        }
+
+        try
+        {
+            $uri = $uri->withQuery($query);
+        }
+        catch (InvalidArgumentException $exception)
+        {
+
+        }
+
+        $uri        = $uri->withFragment($fragment);
+        $caughtUri  = (string) $uri;
+
+        self::assertEquals
+        (
+            $expectedUri,
+            $caughtUri,
+            "Method \"Uri::__toString\" returned unexpected result.\n".
+            "Expecting result after setting scheme \"$scheme\", login \"$login\", ".
+            "password \"$password\", host \"$host\", port \"$port\", path \"$path\", ".
+            "query \"$query\", fragment \"$fragment\" is \"$expectedUri\".\n".
+            "Caught result is \"$caughtUri\".\n"
+        );
+    }
+    /** **********************************************************************
+     * Scheme valid values data provider.
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function getSchemeDataProvider() : array
+    public function schemeValidValuesDataProvider() : array
     {
-        $schemeValues   = $this->getSchemeValues();
-        $result         = [];
+        $values = UriDataGenerator::getSchemeValues();
+        $result = [];
 
-        foreach ($schemeValues as $scheme => $schemeExpected)
+        foreach ($values as $providedValue => $expectedValue)
         {
-            if (!is_null($schemeExpected))
+            if (!is_null($expectedValue))
             {
-                $result[] = ["$scheme://site.com", $schemeExpected];
-            }
-            else
-            {
-                $result[] = ["$scheme://site.com", ''];
+                $result[] = [$providedValue, $expectedValue];
             }
         }
 
-        $result[] = [':site.com',       ''];
-        $result[] = [':/site.com',      ''];
-        $result[] = [':://site.com',    ''];
-        $result[] = [':///site.com',    ''];
+        $result[] = ['', ''];
 
         return $result;
     }
     /** **********************************************************************
-     * Data provider for method "getHost".
+     * Scheme invalid values data provider.
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function getHostDataProvider() : array
+    public function schemeInvalidValuesDataProvider() : array
     {
-        $hostValues = $this->getHostValues();
-        $result     = [];
+        $values = UriDataGenerator::getSchemeValues();
+        $result = [];
 
-        foreach ($hostValues as $host => $hostExpected)
+        foreach ($values as $providedValue => $expectedValue)
         {
-            if (!is_null($hostExpected))
+            if (is_null($expectedValue))
             {
-                $result[] = ["http://$host", $hostExpected];
-            }
-            else
-            {
-                $result[] = ["http://$host", ''];
+                $result[] = [$providedValue];
             }
         }
-
-        $result[] = ['://site.com',     'site.com'];
-        $result[] = [':://site.com',    'site.com'];
-        $result[] = [':///site.com',    ''];
-        $result[] = [':::////site.com', ''];
 
         return $result;
     }
     /** **********************************************************************
-     * Data provider for method "getPort".
+     * Host valid values data provider.
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function getPortDataProvider() : array
+    public function hostValidValuesDataProvider() : array
     {
-        $portValues = $this->getPortValues();
-        $result     = [];
+        $values = UriDataGenerator::getHostValues();
+        $result = [];
 
-        foreach ($portValues as $port => $portExpected)
+        foreach ($values as $providedValue => $expectedValue)
         {
-            if (!is_null($portExpected))
+            if (!is_null($expectedValue))
             {
-                $result[] = ["http://site.com:$port", $portExpected];
-            }
-            else
-            {
-                $result[] = ["http://site.com:$port", null];
+                $result[] = [$providedValue, $expectedValue];
             }
         }
+
+        $result[] = ['', ''];
+
+        return $result;
+    }
+    /** **********************************************************************
+     * Host invalid values data provider.
+     *
+     * @return  array                               Data.
+     ************************************************************************/
+    public function hostInvalidValuesDataProvider() : array
+    {
+        $values = UriDataGenerator::getHostValues();
+        $result = [];
+
+        foreach ($values as $providedValue => $expectedValue)
+        {
+            if (is_null($expectedValue))
+            {
+                $result[] = [$providedValue];
+            }
+        }
+
+        return $result;
+    }
+    /** **********************************************************************
+     * Port valid values data provider.
+     *
+     * @return  array                               Data.
+     ************************************************************************/
+    public function portValidValuesDataProvider() : array
+    {
+        $values = UriDataGenerator::getPortValues();
+        $result = [];
+
+        foreach ($values as $providedValue => $expectedValue)
+        {
+            if (!is_null($expectedValue) && $expectedValue !== 0)
+            {
+                $result[] = [$providedValue, $expectedValue];
+            }
+        }
+
+        $result[] = [0, null];
+
+        return $result;
+    }
+    /** **********************************************************************
+     * Port invalid values data provider.
+     *
+     * @return  array                               Data.
+     ************************************************************************/
+    public function portInvalidValuesDataProvider() : array
+    {
+        $values = UriDataGenerator::getPortValues();
+        $result = [];
+
+        foreach ($values as $providedValue => $expectedValue)
+        {
+            if (is_null($expectedValue))
+            {
+                $result[] = [$providedValue];
+            }
+        }
+
+        return $result;
+    }
+    /** **********************************************************************
+     * Standard ports for scheme data provider.
+     *
+     * @return  array                               Data.
+     ************************************************************************/
+    public function portStandardValuesDataProvider() : array
+    {
+        $result = [];
 
         foreach (self::SCHEMES_STANDARD_PORTS as $scheme => $port)
         {
-            $result[] = ["$scheme://site.com:$port", null];
+            $result[] = [$scheme, $port];
         }
-
-        $result[] = ['http://site.com:',        null];
-        $result[] = ['http://site.com:/path',   null];
 
         return $result;
     }
     /** **********************************************************************
-     * Data provider for method "getUserInfo".
+     * User info data provider.
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function getUserInfoDataProvider() : array
+    public function userInfoDataProvider() : array
     {
-        $userInfoValues = $this->getUserInfoValues();
+        $values = UriDataGenerator::getUserInfoValues();
+        $result = [];
+
+        foreach ($values as $providedValue => $expectedValue)
+        {
+            $explode    = explode(':', $providedValue);
+            $result[]   =
+                [
+                    $explode[0],
+                    $explode[1] ?? '',
+                    !is_null($expectedValue) ? $expectedValue : ''
+                ];
+        }
+
+        $result[] = ['', '', ''];
+
+        return $result;
+    }
+    /** **********************************************************************
+     * Authority data provider.
+     *
+     * @return  array                               Data.
+     ************************************************************************/
+    public function authorityDataProvider() : array
+    {
+        $userInfoValues = UriDataGenerator::getUserInfoValues();
+        $hostValues     = UriDataGenerator::getHostValues();
+        $portValues     = UriDataGenerator::getPortValues();
         $result         = [];
 
-        foreach ($userInfoValues as $value => $valueExpected)
+        foreach ($userInfoValues as $providedValue => $expectedValue)
         {
-            if (!is_null($valueExpected))
-            {
-                $result[] = ["http://$value@site.com", $valueExpected];
-            }
-            else
-            {
-                $result[] = ["http://$value@site.com", ''];
-            }
+            $explode    = explode(':', $providedValue);
+            $login      = $explode[0];
+            $password   = $explode[1] ?? '';
+            $result[]   =
+                [
+                    $login,
+                    $password,
+                    'site.com',
+                    123,
+                    !is_null($expectedValue)
+                        ? "$expectedValue@site.com:123"
+                        : 'site.com:123'
+                ];
         }
 
-        $result[] = ['http://@site.com', ''];
+        foreach ($hostValues as $providedValue => $expectedValue)
+        {
+            $result[] =
+                [
+                    'user',
+                    'password',
+                    $providedValue,
+                    123,
+                    !is_null($expectedValue)
+                        ? "user:password@$expectedValue:123"
+                        : ''
+                ];
+        }
+
+        foreach ($portValues as $providedValue => $expectedValue)
+        {
+            $result[] =
+                [
+                    'user',
+                    'password',
+                    'site.com',
+                    $providedValue,
+                    !is_null($expectedValue) && $expectedValue !== 0
+                        ? "user:password@site.com:$expectedValue"
+                        : 'user:password@site.com'
+                ];
+        }
 
         return $result;
     }
     /** **********************************************************************
-     * Data provider for method "getAuthority".
+     * Path valid values data provider.
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function getAuthorityDataProvider() : array
+    public function pathValidValuesDataProvider() : array
     {
-        $hostValues     = $this->getHostValues();
-        $portValues     = $this->getPortValues();
-        $userInfoValues = $this->getUserInfoValues();
-        $result         = [];
+        $values = UriDataGenerator::getPathValues();
+        $result = [];
 
-        foreach ($hostValues as $host => $hostExpected)
+        foreach ($values as $providedValue => $expectedValue)
         {
-            if (!is_null($hostExpected))
+            if (!is_null($expectedValue))
             {
-                $result[] =
-                    [
-                        "http://user:password@$host:123/path/",
-                        "user:password@$hostExpected:123"
-                    ];
-            }
-            else
-            {
-                $result[] =
-                    [
-                        "http://user:password@$host:123/path/",
-                        ''
-                    ];
+                $result[] = [$providedValue, $expectedValue];
             }
         }
 
-        foreach ($portValues as $port => $portExpected)
-        {
-            if (!is_null($portExpected))
-            {
-                $result[] =
-                    [
-                        "http://user:password@site.com:$port/path/",
-                        "user:password@site.com:$portExpected"
-                    ];
-            }
-            else
-            {
-                $result[] =
-                    [
-                        "http://user:password@site.com:$port/path/",
-                        'user:password@site.com'
-                    ];
-            }
-        }
-
-        foreach ($userInfoValues as $value => $valueExpected)
-        {
-            if (!is_null($valueExpected))
-            {
-                $result[] =
-                    [
-                        "http://$value@site.com:123/path/",
-                        "$valueExpected@site.com:123"
-                    ];
-            }
-            else
-            {
-                $result[] =
-                    [
-                        "http://$value@site.com:123/path/",
-                        'site.com:123'
-                    ];
-            }
-        }
-
-        $result[] =
-            [
-                'http://@site.com:123/path/',
-                'site.com:123'
-            ];
-        $result[] =
-            [
-                'http://user:password@site.com:/path/',
-                'user:password@site.com'
-            ];
-        $result[] =
-            [
-                'http://@site.com:/path/',
-                'site.com'
-            ];
+        $result[] = ['', ''];
 
         return $result;
     }
     /** **********************************************************************
-     * Data provider for method "getPath".
+     * Path invalid values data provider.
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function getPathDataProvider() : array
+    public function pathInvalidValuesDataProvider() : array
     {
-        $pathValues = $this->getPathValues();
-        $result     = [];
+        $values = UriDataGenerator::getPathValues();
+        $result = [];
 
-        foreach ($pathValues as $path => $pathExpected)
+        foreach ($values as $providedValue => $expectedValue)
         {
-            if (!is_null($pathExpected))
+            if (is_null($expectedValue))
             {
-                $result[] = ["http://site.com$path", $pathExpected];
-            }
-            else
-            {
-                $result[] = ["http://site.com$path", ''];
+                $result[] = [$providedValue];
             }
         }
-
-        $result[] = ['http://site.com//path',       '//path'];
-        $result[] = ['http://site.com',             ''];
-        $result[] = ['http://site.com?key=value',   ''];
-        $result[] = ['http://site.com/',            '/'];
-        $result[] = ['http://site.com/?key=value',  '/'];
 
         return $result;
     }
     /** **********************************************************************
-     * Data provider for method "getQuery".
+     * Query valid values data provider.
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function getQueryDataProvider() : array
+    public function queryValidValuesDataProvider() : array
     {
-        $queryValues    = $this->getQueryValues();
-        $result         = [];
+        $values = UriDataGenerator::getQueryValues();
+        $result = [];
 
-        foreach ($queryValues as $query => $queryExpected)
+        foreach ($values as $providedValue => $expectedValue)
         {
-            if (!is_null($queryExpected))
+            if (!is_null($expectedValue))
             {
-                $result[] = ["http://site.com?$query", $queryExpected];
-            }
-            else
-            {
-                $result[] = ["http://site.com?$query", ''];
+                $result[] = [$providedValue, $expectedValue];
             }
         }
 
-        $result[] = ['http://site.com?',        ''];
-        $result[] = ['http://site.com??key',    'key'];
-        $result[] = ['http://site.com????key',  'key'];
+        $result[] = ['', ''];
 
         return $result;
     }
     /** **********************************************************************
-     * Get scheme values map.
+     * Query invalid values data provider.
      *
-     * @return  array                               Scheme values map, where key is raw value
-     *                                              and value is value expected.
+     * @return  array                               Data.
      ************************************************************************/
-    private function getSchemeValues() : array
+    public function queryInvalidValuesDataProvider() : array
     {
-        $allowedSpecialChars    = self::SCHEME_ALLOWED_SPECIAL_CHARS;
-        $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
-        $incorrectSpecialChars  = array_filter
-        (
-            array_keys(self::SPECIAL_CHARS),
-            function($char) use ($allowedSpecialChars,  $technicalSpecialChars)
+        $values = UriDataGenerator::getQueryValues();
+        $result = [];
+
+        foreach ($values as $providedValue => $expectedValue)
+        {
+            if (is_null($expectedValue))
             {
-                return
-                    !in_array($char, $allowedSpecialChars) &&
-                    !in_array($char, $technicalSpecialChars);
+                $result[] = [$providedValue];
             }
-        );
-        $result                 =
-            [
-                'http'          => 'http',
-                'https'         => 'https',
-                'ftp'           => 'ftp',
-                'scheme'        => 'scheme',
-
-                'Http'          => 'http',
-                'HTTP'          => 'http',
-                'hTtP'          => 'http',
-
-                'scheme10'      => 'scheme10',
-                '10scheme'      => null,
-
-                'scheme '       => 'scheme',
-                ' scheme'       => 'scheme',
-                's c h e m e'   => null
-            ];
-
-        foreach ($allowedSpecialChars as $char)
-        {
-            $schemes["scheme{$char}"]   = "scheme{$char}";
-            $schemes["{$char}scheme"]   = null;
-        }
-        foreach ($incorrectSpecialChars as $char)
-        {
-            $schemes["scheme{$char}"]   = null;
-            $schemes["{$char}scheme"]   = null;
         }
 
         return $result;
     }
     /** **********************************************************************
-     * Get host values map.
+     * Fragment data provider.
      *
-     * @return  array                               Host values map, where key is raw value
-     *                                              and value is value expected.
+     * @return  array                               Data.
      ************************************************************************/
-    private function getHostValues() : array
+    public function fragmentDataProvider() : array
     {
-        $ipAddressesV6ValuesRaw = $this->getIpAddressesV6Values();
-        $ipAddressesV6Values    = [];
+        $values = UriDataGenerator::getFragmentValues();
+        $result = [];
 
-        foreach ($ipAddressesV6ValuesRaw as $key => $value)
+        foreach ($values as $providedValue => $expectedValue)
         {
-            $ipAddressesV6Values["[$key]"] = !is_null($value)
-                ? "[$value]"
-                : null;
+            $result[] = [$providedValue, !is_null($expectedValue) ? $expectedValue : ''];
         }
 
-        return array_merge
-        (
-            $this->getDomainNamesValues(),
-            $this->getIpAddressesV4Values(),
-            $ipAddressesV6Values
-        );
-    }
-    /** **********************************************************************
-     * Get domain names values map.
-     *
-     * @return  array                               Domain names values map, where key is raw value
-     *                                              and value is value expected.
-     ************************************************************************/
-    private function getDomainNamesValues() : array
-    {
-        $allowedSpecialChars    = self::DOMAIN_NAME_ALLOWED_SPECIAL_CHARS;
-        $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
-        $incorrectSpecialChars  = array_filter
-        (
-            array_keys(self::SPECIAL_CHARS),
-            function($char) use ($allowedSpecialChars,  $technicalSpecialChars)
-            {
-                return
-                    !in_array($char, $allowedSpecialChars) &&
-                    !in_array($char, $technicalSpecialChars);
-            }
-        );
-        $result                 =
-            [
-                'site.en'       => 'site.en',
-                'site.com'      => 'site.com',
-                'www.site.com'  => 'www.site.com',
-
-                'Site.com'      => 'site.com',
-                'SITE.com'      => 'site.com',
-                'sItE.com'      => 'site.com',
-
-                'site10.com'    => 'site10.com',
-                '10site.com'    => '10site.com',
-                '10.com'        => '10.com',
-
-                'site.com '     => 'site.com',
-                ' site.com'     => 'site.com',
-                's i t e.com'   => null
-            ];
-
-        foreach ($allowedSpecialChars as $char)
-        {
-            $result["site{$char}.com"]  = "site{$char}.com";
-            $result["{$char}site.com"]  = null;
-        }
-        foreach ($incorrectSpecialChars as $char)
-        {
-            $result["site{$char}.com"]  = null;
-            $result["{$char}site.com"]  = null;
-        }
+        $result[] = ['', ''];
 
         return $result;
     }
     /** **********************************************************************
-     * Get ip addresses v4 values map.
+     * Uri data provider.
      *
-     * @return  array                               Ip addresses v4 values map, where key is raw value
-     *                                              and value is value expected.
+     * @return  array                               Data.
      ************************************************************************/
-    private function getIpAddressesV4Values() : array
+    public function uriDataProvider() : array
     {
         return
             [
-                '127.0.0.1'         => '127.0.0.1',
-                '1.0.0.1'           => '1.0.0.1',
-                '10.0.0.10'         => '10.0.0.10',
-
-                '255.255.255.255'   => '255.255.255.255',
-                '255.255.255.256'   => null,
-                '255.255.255.-1'    => null,
-
-                '01.0.0.1'          => '1.0.0.1',
-                '001.0.0.1'         => '1.0.0.1',
-                '010.0.0.1'         => '10.0.0.1',
-
-                '0.0.0.0.1'         => null,
-                '0.0.0.0.0.1'       => null,
-                '0.0.0.1.'          => null,
-                '.0.0.0.1'          => null
+                [
+                    'scheme',
+                    'login',
+                    'password',
+                    'site.com',
+                    123,
+                    'path',
+                    'key=value',
+                    'fragment',
+                    'scheme://login:password@site.com:123/path?key=value#fragment'
+                ],
+                [
+                    '',
+                    'login',
+                    'password',
+                    'site.com',
+                    123,
+                    'path',
+                    'key=value',
+                    'fragment',
+                    '//login:password@site.com:123/path?key=value#fragment'
+                ],
+                [
+                    'scheme',
+                    '',
+                    'password',
+                    'site.com',
+                    123,
+                    'path',
+                    'key=value',
+                    'fragment',
+                    'scheme://site.com:123/path?key=value#fragment'
+                ],
+                [
+                    'scheme',
+                    'login',
+                    '',
+                    'site.com',
+                    123,
+                    'path',
+                    'key=value',
+                    'fragment',
+                    'scheme://login@site.com:123/path?key=value#fragment'
+                ],
+                [
+                    'scheme',
+                    'login',
+                    'password',
+                    '',
+                    123,
+                    'path',
+                    'key=value',
+                    'fragment',
+                    'scheme:path?key=value#fragment'
+                ],
+                [
+                    'scheme',
+                    'login',
+                    'password',
+                    '',
+                    123,
+                    '/path',
+                    'key=value',
+                    'fragment',
+                    'scheme:/path?key=value#fragment'
+                ],
+                [
+                    'scheme',
+                    'login',
+                    'password',
+                    'site.com',
+                    0,
+                    'path',
+                    'key=value',
+                    'fragment',
+                    'scheme://login:password@site.com/path?key=value#fragment'
+                ],
+                [
+                    'scheme',
+                    'login',
+                    'password',
+                    'site.com',
+                    123,
+                    '',
+                    'key=value',
+                    'fragment',
+                    'scheme://login:password@site.com:123?key=value#fragment'
+                ],
+                [
+                    'scheme',
+                    'login',
+                    'password',
+                    'site.com',
+                    123,
+                    '/path',
+                    'key=value',
+                    'fragment',
+                    'scheme://login:password@site.com:123/path?key=value#fragment'
+                ],
+                [
+                    'scheme',
+                    'login',
+                    'password',
+                    'site.com',
+                    123,
+                    'path',
+                    '',
+                    'fragment',
+                    'scheme://login:password@site.com:123/path#fragment'
+                ],
+                [
+                    'scheme',
+                    'login',
+                    'password',
+                    'site.com',
+                    123,
+                    'path',
+                    'key=value',
+                    '',
+                    'scheme://login:password@site.com:123/path?key=value'
+                ],
             ];
-    }
-    /** **********************************************************************
-     * Get ip addresses v6 values map.
-     *
-     * @return  array                               Ip addresses v6 values map, where key is raw value
-     *                                              and value is value expected.
-     ************************************************************************/
-    private function getIpAddressesV6Values() : array
-    {
-        return
-            [
-                '1234:5678:1357:2468:aabb:ccdd:eeff:ABCD'   => '1234:5678:1357:2468:aabb:ccdd:eeff:ABCD',
-                '1234:123:12:1:abcd:ABCD:AbCd:FF'           => '1234:123:12:1:abcd:ABCD:AbCd:FF',
-                '1a:2b:3c:4d:5e:6f:7:8'                     => '1a:2b:3c:4d:5e:6f:7:8',
-
-                '1:2:3:4:5:6:7:8'                           => '1:2:3:4:5:6:7:8',
-                '1:2:3:4:5:6:7:g'                           => null,
-                '1:2:3:4:5:6:7:G'                           => null,
-                '1:2:3:4:5:6:7:-1'                          => null,
-
-                '1:2:3:4:5:6:7:8:9'                         => null,
-                '1:2:3:4:5:6:7'                             => null,
-
-                '01:2:3:4:5:6:7:8'                          => '1:2:3:4:5:6:7:8',
-                '001:2:3:4:5:6:7:8'                         => '1:2:3:4:5:6:7:8',
-                '010:2:3:4:5:6:7:8'                         => '10:2:3:4:5:6:7:8',
-                '00001:2:3:4:5:6:7:8'                       => null,
-
-                '1:2:3:4:5:6:0:0'                           => '1:2:3:4:5:6::',
-                '0:0:3:4:5:6:7:8'                           => '::3:4:5:6:7:8',
-                '1:2:3:0:0:6:7:8'                           => '1:2:3::6:7:8',
-
-                '1:0:00:4:000:0000:0:8'                     => '1:0:0:4::8',
-                '1:0:0:4:5:0:0:8'                           => '1::4:5:0:0:8',
-                '0:00:000:0000:0:00:000:0000'               => '::',
-
-                '1:2::'                                     => '1:2::',
-                '1:2:::'                                    => null,
-                '::7:8'                                     => '::7:8',
-                ':::7:8'                                    => null,
-                '1:2::7:8'                                  => '1:2::7:8',
-                '1:2:::7:8'                                 => null,
-                '1::5::8'                                   => null,
-                '::'                                        => '::',
-                ':::'                                       => null,
-
-                '1:2:3:4:5:6:7::'                           => null,
-                '::2:3:4:5:6:7:8'                           => null,
-
-                '1:2:3:4:5:6:1.0.0.1'                       => '1:2:3:4:5:6:1.0.0.1',
-                '1:2:3:4:5:1.0.0.1'                         => null,
-                '1:2:3:4:5:6:7:1.0.0.1'                     => null,
-                '1:2:3:4:5:6:1.0.0.256'                     => null,
-                '1:2:3:4:5:6:1.0.0.-1'                      => null,
-                '1:2:3:4:5:6:1.0.0.0.1'                     => null,
-
-                '1:2:3:4::1.0.0.1'                          => '1:2:3:4::1.0.0.1',
-                '1:2:3:4:0:0:1.0.0.1'                       => '1:2:3:4::1.0.0.1',
-                '1:2:3:4:::1.0.0.1'                         => null,
-                '1:2:3:4:5::1.0.0.1'                        => null,
-
-                '::3:4:5:6:1.0.0.1'                         => '::3:4:5:6:1.0.0.1',
-                '::2:3:4:5:6:1.0.0.1'                       => null,
-                '1:2::5:6:1.0.0.1'                          => '1:2::5:6:1.0.0.1',
-                '01:002:0000:000:5:6:01.010.000.1'          => '1:2::5:6:1.10.0.1',
-
-                '1:2:3:4:5:6:1.0.0.1:'                      => null,
-                '1:2:3:4:5:6:1.0.0.1:0'                     => null,
-                '1:2:3:4:5:6:7:'                            => null,
-                ':2:3:4:5:6:7:8'                            => null,
-                '1:2:3::6:7:'                               => null,
-                ':2:3::6:7:8'                               => null
-            ];
-    }
-    /** **********************************************************************
-     * Get port values map.
-     *
-     * @return  array                               Port values map, where key is raw value
-     *                                              and value is value expected.
-     ************************************************************************/
-    private function getPortValues() : array
-    {
-        $minAvailableValue  = self::PORT_MIN_VALUE;
-        $maxAvailableValue  = self::PORT_MAX_VALUE;
-        $result             =
-            [
-                $minAvailableValue      => $minAvailableValue,
-                $maxAvailableValue      => $maxAvailableValue,
-
-                $minAvailableValue - 1  => null,
-                $maxAvailableValue + 1  => null,
-
-                'somePort'              => null
-            ];
-
-        for ($index = 5; $index > 0; $index--)
-        {
-            $value          = rand($minAvailableValue, $maxAvailableValue);
-            $result[$value] = $value;
-        }
-        for ($index = 5; $index > 0; $index--)
-        {
-            $value          = rand($minAvailableValue - 100, $minAvailableValue - 1);
-            $result[$value] = null;
-        }
-        for ($index = 5; $index > 0; $index--)
-        {
-            $value          = rand($maxAvailableValue + 1, $maxAvailableValue + 100);
-            $result[$value] = null;
-        }
-
-        return $result;
-    }
-    /** **********************************************************************
-     * Get user info values map.
-     *
-     * @return  array                               User info values map, where key is raw value
-     *                                              and value is value expected.
-     ************************************************************************/
-    private function getUserInfoValues() : array
-    {
-        $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
-        $specialChars           = array_filter
-        (
-            array_keys(self::SPECIAL_CHARS),
-            function($char) use ($technicalSpecialChars)
-            {
-                return !in_array($char, $technicalSpecialChars);
-            }
-        );
-        $result                 =
-            [
-                'login:password'    => 'login:password',
-                'login'             => 'login',
-                ':password'         => null,
-
-                'Login:Password'    => 'Login:Password',
-                'LOGIN:PASSWORD'    => 'LOGIN:PASSWORD',
-                'lOgIn:PasSwOrD'    => 'lOgIn:PasSwOrD',
-
-                'login10'           => 'login10',
-                '10login'           => '10login',
-
-                'login '            => 'login%20',
-                ' login'            => '%20login',
-                'l o g i n'         => 'l%20o%20g%20i%20n'
-            ];
-
-        foreach ($specialChars as $char)
-        {
-            $charEncoded                                    = self::SPECIAL_CHARS[$char];
-            $result["{$char}login{$char}"]                  = "{$charEncoded}login{$charEncoded}";
-            $result["{$charEncoded}login{$charEncoded}"]    = "{$charEncoded}login{$charEncoded}";
-        }
-        foreach ($technicalSpecialChars as $char)
-        {
-            $charEncoded                                    = self::SPECIAL_CHARS[$char];
-            $result["{$charEncoded}login{$charEncoded}"]    = "{$charEncoded}login{$charEncoded}";
-        }
-
-        return $result;
-    }
-    /** **********************************************************************
-     * Get path values map.
-     *
-     * @return  array                               Path values map, where key is raw value
-     *                                              and value is value expected.
-     ************************************************************************/
-    private function getPathValues() : array
-    {
-        $allowedSpecialChars    = self::PATH_ALLOWED_SPECIAL_CHARS;
-        $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
-        $specialChars           = array_filter
-        (
-            array_keys(self::SPECIAL_CHARS),
-            function($char) use ($allowedSpecialChars, $technicalSpecialChars)
-            {
-                return
-                    !in_array($char, $allowedSpecialChars) &&
-                    !in_array($char, $technicalSpecialChars);
-            }
-        );
-        $result             =
-            [
-                '/path/'                    => '/path/',
-                '/path1/path2/'             => '/path1/path2/',
-                '/path1/path2/path3-path4'  => '/path1/path2/path3-path4',
-
-                '/Path/'                    => '/Path/',
-                '/PATH/'                    => '/PATH/',
-                '/pAtH/'                    => '/pAtH/',
-
-                '/path /'                   => '/path%20/',
-                '/ path/'                   => '/%20path/',
-                '/p a t h/'                 => '/p%20a%20t%20h/'
-            ];
-
-        foreach ($allowedSpecialChars as $char)
-        {
-            $result["/path{$char}/"] = "/path{$char}/";
-        }
-        foreach ($technicalSpecialChars as $char)
-        {
-            $charEncoded                    = urlencode($char);
-            $result["/path{$charEncoded}/"] = "/path{$charEncoded}/";
-        }
-        foreach ($specialChars as $char)
-        {
-            $charEncoded                    = urlencode($char);
-            $result["/path{$char}/"]        = "/path{$charEncoded}/";
-            $result["/path{$charEncoded}/"] = "/path{$charEncoded}/";
-        }
-
-        return $result;
-    }
-    /** **********************************************************************
-     * Get query values map.
-     *
-     * @return  array                               Query values map, where key is raw value
-     *                                              and value is value expected.
-     ************************************************************************/
-    private function getQueryValues() : array
-    {
-        $allowedSpecialChars    = self::QUERY_ALLOWED_SPECIAL_CHARS;
-        $technicalSpecialChars  = self::URI_SEPARATING_CHARS;
-        $otherSpecialChars      = array_filter
-        (
-            array_keys(self::SPECIAL_CHARS),
-            function($char) use ($allowedSpecialChars, $technicalSpecialChars)
-            {
-                return
-                    !in_array($char, $allowedSpecialChars) &&
-                    !in_array($char, $technicalSpecialChars);
-            }
-        );
-        $result             =
-            [
-                'key'                           => 'key',
-                'value'                         => 'value',
-
-                'Key'                           => 'Key',
-                'KEY'                           => 'KEY',
-                'kEy'                           => 'kEy',
-
-                'key='                          => 'key',
-                'key=value'                     => 'key=value',
-                'Key=Value'                     => 'Key=Value',
-
-                'key1=value2&key2'              => 'key1=value2&key2',
-                'key1=value2&key2='             => 'key1=value2&key2',
-                'key1=value2&key2=value2'       => 'key1=value2&key2=value2',
-
-                'key1=value2&'                  => 'key1=value2',
-                'key1=value2&=value2'           => 'key1=value2',
-                'key1==value2&&key2===value2'   => 'key1=value2&key2=value2'
-            ];
-
-        foreach ($allowedSpecialChars as $char)
-        {
-            $result["{$char}={$char}"] = "{$char}={$char}";
-        }
-        foreach ($technicalSpecialChars as $char)
-        {
-            $charEncoded                                = urlencode($char);
-            $result["{$charEncoded}={$charEncoded}"]    = "{$charEncoded}={$charEncoded}";
-        }
-        foreach ($otherSpecialChars as $char)
-        {
-            $charEncoded                                = urlencode($char);
-            $result["{$char}={$char}"]                  = "{$charEncoded}={$charEncoded}";
-            $result["{$charEncoded}={$charEncoded}"]    = "{$charEncoded}={$charEncoded}";
-        }
-
-        return $result;
     }
 }

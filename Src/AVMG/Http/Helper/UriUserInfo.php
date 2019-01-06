@@ -32,7 +32,12 @@ class UriUserInfo
         }
         catch (NormalizingException $exception)
         {
-            throw $exception;
+            throw new NormalizingException
+            (
+                "login validation error, \"{$exception->getMessage()}\"",
+                0,
+                $exception
+            );
         }
 
         try
@@ -80,7 +85,7 @@ class UriUserInfo
     {
         if (strlen($value) <= 0)
         {
-            throw new NormalizingException('user info part is empty string');
+            throw new NormalizingException('value is empty string');
         }
 
         return rawurlencode(rawurldecode($value));

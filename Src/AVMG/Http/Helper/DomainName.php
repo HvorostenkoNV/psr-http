@@ -30,7 +30,7 @@ class DomainName
      ************************************************************************/
     public static function normalize(string $domainName) : string
     {
-        $domainNameConverted    = strtolower(trim($domainName));
+        $domainNameConverted    = strtolower($domainName);
         $domainNameMask         = self::getMask();
         $matches                = [];
 
@@ -62,7 +62,7 @@ class DomainName
                 $specialCharsMask .= "\\$char";
             }
 
-            self::$mask         = "/^[a-z0-9]{1}[a-z0-9$specialCharsMask]{0,}\.[a-z]{1,}/";
+            self::$mask         = "/(^[a-z0-9]+)([a-z]+)([a-z0-9$specialCharsMask]{0,})/";
             self::$maskPrepared = true;
         }
 

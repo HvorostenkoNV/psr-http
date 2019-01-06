@@ -12,7 +12,8 @@ use
     AVMG\Http\Helper\Port,
     AVMG\Http\Helper\UriUserInfo,
     AVMG\Http\Helper\UriPath,
-    AVMG\Http\Helper\UriParams;
+    AVMG\Http\Helper\UriQuery,
+    AVMG\Http\Helper\UriFragment;
 /** ***********************************************************************************************
  * PSR-7 UriInterface implementation.
  *
@@ -24,90 +25,11 @@ class Uri implements UriInterface
     private
         $scheme     = '',
         $host       = '',
-        $port       = null,
+        $port       = 0,
         $userInfo   = '',
         $path       = '',
         $query      = '',
         $fragment   = '';
-    /** **********************************************************************
-     * Constructor.
-     *
-     * @param   string $uri                 Uri.
-     ************************************************************************/
-    public function __construct(string $uri = '')
-    {
-        $uriData = $this->parseUrl($uri);
-
-        try
-        {
-            $scheme         = (string) ($uriData['scheme'] ?? '');
-            $this->scheme   = Scheme::normalize($scheme);
-        }
-        catch (NormalizingException $exception)
-        {
-
-        }
-
-        try
-        {
-            $host       = (string) ($uriData['host'] ?? '');
-            $this->host = Host::normalize($host);
-        }
-        catch (NormalizingException $exception)
-        {
-
-        }
-
-        try
-        {
-            $port       = (int) ($uriData['port'] ?? 0);
-            $this->port = Port::normalize($port);
-        }
-        catch (NormalizingException $exception)
-        {
-
-        }
-
-        try
-        {
-            $userInfo       = (string) ($uriData['userInfo'] ?? '');
-            $this->userInfo = UriUserInfo::normalize($userInfo);
-        }
-        catch (NormalizingException $exception)
-        {
-
-        }
-
-        try
-        {
-            $path       = (string) ($uriData['path'] ?? '');
-            $this->path = UriPath::normalize($path);
-        }
-        catch (NormalizingException $exception)
-        {
-
-        }
-
-        try
-        {
-            $query          = (string) ($uriData['query'] ?? '');
-            $this->query    = UriParams::normalizeQuery($query);
-        }
-        catch (NormalizingException $exception)
-        {
-
-        }
-
-        try
-        {
-            $fragment       = (string) ($uriData['fragment'] ?? '');
-            $this->fragment = UriParams::normalizeFragment($fragment);
-        }
-        catch (NormalizingException $exception)
-        {
-
-        }
-    }
     /** **********************************************************************
      * Retrieve the scheme component of the URI.
      *
@@ -223,7 +145,7 @@ class Uri implements UriInterface
         $port   = $this->port;
         $scheme = $this->getScheme();
 
-        return is_null($port) || Port::isStandard($port, $scheme)
+        return $port === 0 || Port::isStandard($port, $scheme)
             ? null
             : $port;
     }
@@ -321,17 +243,25 @@ class Uri implements UriInterface
      ************************************************************************/
     public function withScheme(string $scheme) : UriInterface
     {
-        try
-        {
-            $newInstance = clone $this;
-            $newInstance->scheme = Scheme::normalize($scheme);
+        $newInstance = clone $this;
 
-            return $newInstance;
-        }
-        catch (NormalizingException $exception)
+        if ($scheme === '')
         {
-            throw new InvalidArgumentException('scheme is invalid or unsupported');
+            $newInstance->scheme = '';
         }
+        else
+        {
+            try
+            {
+                $newInstance->scheme = Scheme::normalize($scheme);
+            }
+            catch (NormalizingException $exception)
+            {
+                throw new InvalidArgumentException("scheme is invalid: {$exception->getMessage()}");
+            }
+        }
+
+        return $newInstance;
     }
     /** **********************************************************************
      * Return an instance with the specified user information.
@@ -378,17 +308,25 @@ class Uri implements UriInterface
      ************************************************************************/
     public function withHost(string $host) : UriInterface
     {
-        try
-        {
-            $newInstance = clone $this;
-            $newInstance->host = Host::normalize($host);
+        $newInstance = clone $this;
 
-            return $newInstance;
-        }
-        catch (NormalizingException $exception)
+        if ($host === '')
         {
-            throw new InvalidArgumentException('hostname is invalid');
+            $newInstance->host = '';
         }
+        else
+        {
+            try
+            {
+                $newInstance->host = Host::normalize($host);
+            }
+            catch (NormalizingException $exception)
+            {
+                throw new InvalidArgumentException("host is invalid: {$exception->getMessage()}");
+            }
+        }
+
+        return $newInstance;
     }
     /** **********************************************************************
      * Return an instance with the specified port.
@@ -410,17 +348,25 @@ class Uri implements UriInterface
      ************************************************************************/
     public function withPort(int $port = 0) : UriInterface
     {
-        try
-        {
-            $newInstance = clone $this;
-            $newInstance->port = Port::normalize($port);
+        $newInstance = clone $this;
 
-            return $newInstance;
-        }
-        catch (NormalizingException $exception)
+        if ($port === 0)
         {
-            throw new InvalidArgumentException('port is invalid');
+            $newInstance->port = 0;
         }
+        else
+        {
+            try
+            {
+                $newInstance->port = Port::normalize($port);
+            }
+            catch (NormalizingException $exception)
+            {
+                throw new InvalidArgumentException("port is invalid: {$exception->getMessage()}");
+            }
+        }
+
+        return $newInstance;
     }
     /** **********************************************************************
      * Return an instance with the specified path.
@@ -456,7 +402,7 @@ class Uri implements UriInterface
         }
         catch (NormalizingException $exception)
         {
-            throw new InvalidArgumentException('path is invalid');
+            throw new InvalidArgumentException("path is invalid: {$exception->getMessage()}");
         }
     }
     /** **********************************************************************
@@ -477,17 +423,25 @@ class Uri implements UriInterface
      ************************************************************************/
     public function withQuery(string $query) : UriInterface
     {
-        try
-        {
-            $newInstance = clone $this;
-            $newInstance->query = UriParams::normalizeQuery($query);
+        $newInstance = clone $this;
 
-            return $newInstance;
-        }
-        catch (NormalizingException $exception)
+        if ($query === '')
         {
-            throw new InvalidArgumentException('query string is invalid');
+            $newInstance->query = '';
         }
+        else
+        {
+            try
+            {
+                $newInstance->query = UriQuery::normalize($query);
+            }
+            catch (NormalizingException $exception)
+            {
+                throw new InvalidArgumentException("query is invalid: {$exception->getMessage()}");
+            }
+        }
+
+        return $newInstance;
     }
     /** **********************************************************************
      * Return an instance with the specified URI fragment.
@@ -510,7 +464,7 @@ class Uri implements UriInterface
 
         try
         {
-            $newInstance->fragment = UriParams::normalizeFragment($fragment);
+            $newInstance->fragment = UriFragment::normalize($fragment);
         }
         catch (NormalizingException $exception)
         {
@@ -545,95 +499,41 @@ class Uri implements UriInterface
      ************************************************************************/
     public function __toString() : string
     {
-        $result = '';
+        $scheme     = $this->getScheme();
+        $authority  = $this->getAuthority();
+        $path       = $this->getPath();
+        $query      = $this->getQuery();
+        $fragment   = $this->getFragment();
+        $result     = '';
 
-        if (strlen($this->scheme) > 0)
+        if (strlen($scheme) > 0)
         {
-            $result .= "{$this->scheme}://";
+            $result = "$scheme:";
         }
-        $result .= $this->getAuthority().$this->path;
-        if (strlen($this->query) > 0)
+        if (strlen($authority) > 0)
         {
-            $result .= "?{$this->query}";
+            $result .= "//$authority";
         }
-        if (strlen($this->fragment) > 0)
+        if (strlen($path) > 0)
         {
-            $result .= "#{$this->fragment}";
+            if (strlen($authority) > 0 && $path[0] != '/')
+            {
+                $result .= "/$path";
+            }
+            else
+            {
+                $result .= $path;
+            }
+        }
+        if (strlen($query) > 0)
+        {
+            $result .= "?$query";
+        }
+        if (strlen($fragment) > 0)
+        {
+            $result .= "#$fragment";
         }
 
         return $result;
-    }
-    /** **********************************************************************
-     * Parse URL and get array data.
-     *
-     * @param   string $uri                 Uri.
-     *
-     * @return  array                       URL parsed data.
-     ************************************************************************/
-    private function parseUrl(string $uri = '')
-    {
-        $uriFiltered    = preg_replace('/\:{1,}\/{2}/', '://', $uri);
-        $uriData        =
-            [
-                'scheme'    => '',
-                'host'      => '',
-                'port'      => '',
-                'userInfo'  => '',
-                'path'      => '',
-                'query'     => '',
-                'fragment'  => ''
-            ];
-
-        if (strpos($uriFiltered, '://') !== false)
-        {
-            $explode            = explode('://', $uriFiltered);
-            $uriData['scheme']  = array_shift($explode);
-            $uriFiltered        = implode('://', $explode);
-        }
-        if (strpos($uriFiltered, '#') !== false)
-        {
-            $explode                = explode('#', $uriFiltered);
-            $uriData['fragment']    = array_pop($explode);
-            $uriFiltered            = implode('#', $explode);
-        }
-        if (strpos($uriFiltered, '?') !== false)
-        {
-            $explode            = explode('?', $uriFiltered);
-            $uriData['query']   = array_pop($explode);
-            $uriFiltered        = implode('?', $explode);
-        }
-        if (strpos($uriFiltered, '/') !== false)
-        {
-            $explode            = explode('/', $uriFiltered);
-            $uriFiltered        = array_shift($explode);
-            $uriData['path']    = '/'.implode('/', $explode);
-        }
-        if (strpos($uriFiltered, '@') !== false)
-        {
-            $explode                = explode('@', $uriFiltered);
-            $uriData['userInfo']    = array_shift($explode);
-            $uriFiltered            = implode('@', $explode);
-        }
-        if
-        (
-            (
-                strpos($uriFiltered, '[')   === 0 &&
-                strpos($uriFiltered, ']:')  !== false
-            ) ||
-            (
-                strpos($uriFiltered, '[')   === false &&
-                strpos($uriFiltered, ']')   === false &&
-                strpos($uriFiltered, ':')   !== false
-            )
-        )
-        {
-            $explode            = explode(':', $uriFiltered);
-            $uriData['port']    = array_pop($explode);
-            $uriFiltered        = implode(':', $explode);
-        }
-
-        $uriData['host'] = $uriFiltered;
-
-        return $uriData;
     }
 }

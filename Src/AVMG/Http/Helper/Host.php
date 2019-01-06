@@ -24,15 +24,6 @@ class Host
     {
         try
         {
-            return DomainName::normalize($host);
-        }
-        catch (NormalizingException $exception)
-        {
-
-        }
-
-        try
-        {
             return IpAddress::normalizeV4($host);
         }
         catch (NormalizingException $exception)
@@ -46,6 +37,15 @@ class Host
             $ipAddressNormalized    = IpAddress::normalizeV6($ipAddressPrepared);
 
             return "[$ipAddressNormalized]";
+        }
+        catch (NormalizingException $exception)
+        {
+
+        }
+
+        try
+        {
+            return DomainName::normalize($host);
         }
         catch (NormalizingException $exception)
         {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace AVMG\Http\Factory;
 
 use
+    InvalidArgumentException,
     Psr\Http\Message\UriInterface,
     Psr\Http\Message\UriFactoryInterface,
     AVMG\Http\Uri\Uri;
@@ -21,6 +22,7 @@ class UriFactory implements UriFactoryInterface
      * @param   string $uri                 The URI to parse.
      *
      * @return  UriInterface                URI.
+     * @throws  InvalidArgumentException    Given URI cannot be parsed.
      ************************************************************************/
     public function createUri(string $uri = '') : UriInterface
     {

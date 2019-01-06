@@ -30,7 +30,7 @@ class Scheme
      ************************************************************************/
     public static function normalize(string $scheme) : string
     {
-        $schemeConverted    = strtolower(trim($scheme));
+        $schemeConverted    = strtolower($scheme);
         $schemeMask         = self::getMask();
         $matches            = [];
 
