@@ -52,6 +52,6 @@ class Host
 
         }
 
-        throw new NormalizingException("host \"$host\" is invalid");
+        throw new NormalizingException("value \"$host\" is invalid host");
     }
 }

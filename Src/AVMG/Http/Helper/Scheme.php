@@ -40,7 +40,7 @@ class Scheme
         {
             throw new NormalizingException
             (
-                "scheme \"$scheme\" does not matched the pattern \"$schemeMask\""
+                "value \"$scheme\" does not matched the pattern \"$schemeMask\""
             );
         }
 

@@ -5,6 +5,7 @@ namespace AVMG\Http\Stream;
 
 use
     RuntimeException,
+    InvalidArgumentException,
     Psr\Http\Message\StreamInterface;
 /** ***********************************************************************************************
  * PSR-7 StreamInterface implementation
@@ -14,19 +15,34 @@ use
  *************************************************************************************************/
 class Stream extends AbstractStream implements StreamInterface
 {
-    private $stream = null;
+    private $resource = null;
     /** **********************************************************************
      * Constructor.
      *
-     * @param   resource $stream            Stream.
+     * @param   resource $resource          Resource.
+     *
+     * @throws  InvalidArgumentException    Argument is not resource.
      ************************************************************************/
-    public function __construct($stream)
+    public function __construct($resource)
     {
-        if (is_resource($stream))
+        if (!is_resource($resource))
         {
-            $this->stream = $stream;
-            rewind($this->stream);
+            $argumentType = gettype($resource);
+
+            throw new InvalidArgumentException
+            (
+                "argument must be resource, \"$argumentType\" caught"
+            );
         }
+
+        $this->resource = $resource;
+    }
+    /** **********************************************************************
+     * Destructor.
+     ************************************************************************/
+    public function __destruct()
+    {
+        $this->close();
     }
     /** **********************************************************************
      * Separates any underlying resources from the stream.
@@ -37,11 +53,11 @@ class Stream extends AbstractStream implements StreamInterface
      ************************************************************************/
     public function detach()
     {
-        $stream = $this->stream;
+        $resource = $this->resource;
 
-        $this->stream = null;
+        $this->resource = null;
 
-        return $stream;
+        return $resource;
     }
     /** **********************************************************************
      * Get the size of the stream if known.
@@ -50,12 +66,12 @@ class Stream extends AbstractStream implements StreamInterface
      ************************************************************************/
     public function getSize() : ?int
     {
-        $streamStats = is_resource($this->stream)
-            ? fstat($this->stream)
+        $resourceStats = is_resource($this->resource)
+            ? fstat($this->resource)
             : [];
 
-        return isset($streamStats['size']) && is_numeric($streamStats['size'])
-            ? (int) $streamStats['size']
+        return isset($resourceStats['size']) && is_numeric($resourceStats['size'])
+            ? (int) $resourceStats['size']
             : null;
     }
     /** **********************************************************************
@@ -66,12 +82,10 @@ class Stream extends AbstractStream implements StreamInterface
      ************************************************************************/
     public function tell() : int
     {
-        if (!is_resource($this->stream))
-        {
-            throw new RuntimeException('no resource available');
-        }
+        $cursorPosition = is_resource($this->resource)
+            ? ftell($this->resource)
+            : false;
 
-        $cursorPosition = ftell($this->stream);
         if ($cursorPosition === false)
         {
             throw new RuntimeException('stream reading error');
@@ -86,8 +100,8 @@ class Stream extends AbstractStream implements StreamInterface
      ************************************************************************/
     public function eof() : bool
     {
-        return is_resource($this->stream)
-            ? feof($this->stream)
+        return is_resource($this->resource)
+            ? feof($this->resource)
             : true;
     }
     /** **********************************************************************
@@ -109,17 +123,13 @@ class Stream extends AbstractStream implements StreamInterface
      ************************************************************************/
     public function seek(int $offset, int $whence = SEEK_SET) : void
     {
-        if (!is_resource($this->stream))
-        {
-            throw new RuntimeException('no resource available');
-        }
         if (!$this->isSeekable())
         {
             throw new RuntimeException('stream is not seekable');
         }
 
-        $seekResult = fseek($this->stream, $offset, $whence);
-        if ($seekResult !== 0)
+        $seekResult = fseek($this->resource, $offset, $whence);
+        if ($seekResult === -1)
         {
             throw new RuntimeException('stream reading error');
         }
@@ -134,16 +144,12 @@ class Stream extends AbstractStream implements StreamInterface
      ************************************************************************/
     public function write(string $string) : int
     {
-        if (!is_resource($this->stream))
-        {
-            throw new RuntimeException('no resource available');
-        }
         if (!$this->isWritable())
         {
             throw new RuntimeException('stream is not writable');
         }
 
-        $writeResult = fwrite($this->stream, $string);
+        $writeResult = fwrite($this->resource, $string);
         if ($writeResult === false)
         {
             throw new RuntimeException('stream writing error');
@@ -165,16 +171,20 @@ class Stream extends AbstractStream implements StreamInterface
      ************************************************************************/
     public function read(int $length) : string
     {
-        if (!is_resource($this->stream))
-        {
-            throw new RuntimeException('no resource available');
-        }
         if (!$this->isReadable())
         {
             throw new RuntimeException('stream is not readable');
         }
+        if ($length < 0)
+        {
+            throw new RuntimeException('length parameter cannot be negative');
+        }
+        if ($length == 0)
+        {
+            return '';
+        }
 
-        $readResult = fread($this->stream, $length);
+        $readResult = fread($this->resource, $length);
         if ($readResult === false)
         {
             throw new RuntimeException('stream reading error');
@@ -190,16 +200,12 @@ class Stream extends AbstractStream implements StreamInterface
      ************************************************************************/
     public function getContents() : string
     {
-        if (!is_resource($this->stream))
-        {
-            throw new RuntimeException('no resource available');
-        }
         if (!$this->isReadable())
         {
             throw new RuntimeException('stream is not readable');
         }
 
-        $readResult = stream_get_contents($this->stream);
+        $readResult = stream_get_contents($this->resource);
         if ($readResult === false)
         {
             throw new RuntimeException('stream reading error');
@@ -224,15 +230,18 @@ class Stream extends AbstractStream implements StreamInterface
      ************************************************************************/
     public function getMetadata(string $key = '')
     {
-        $streamMeta = is_resource($this->stream)
-            ? stream_get_meta_data($this->stream)
-            : [];
+        if (!is_resource($this->resource))
+        {
+            return null;
+        }
+
+        $metaData = stream_get_meta_data($this->resource);
 
         if (is_null($key))
         {
-            return $streamMeta;
+            return $metaData;
         }
 
-        return $streamMeta[$key] ?? null;
+        return $metaData[$key] ?? null;
     }
 }

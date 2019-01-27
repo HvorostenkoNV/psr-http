@@ -1,8 +1,6 @@
 <?php
 declare(strict_types=1);
-
 namespace AVMG\Http\Tests\Uri;
-
 use
     Throwable,
     InvalidArgumentException,
@@ -22,14 +20,12 @@ class UriTest extends TestCase
             'https' => 443
         ];
     /** **********************************************************************
-     * Testing Uri setters methods return new instance.
-     *
-     * @test
+     * Test URI setters methods return new instance.
      *
      * @return  void
      * @throws  Throwable
      ************************************************************************/
-    public function settersMethodsReturnNewInstance() : void
+    public function testSettersMethodsReturnNewInstance() : void
     {
         $methods =
             [
@@ -52,301 +48,275 @@ class UriTest extends TestCase
                 $uri,
                 $uriNew,
                 "Method \"Uri::$methodName\" returned unexpected result.\n".
-                "Expecting result must be new instance of Uri.\n".
+                "Expected result must be new instance of Uri.\n".
                 "Caught result is the same instance.\n"
             );
         }
     }
     /** **********************************************************************
-     * Testing method "Uri::withScheme" throws exception with scheme invalid values.
+     * Test "Uri::withScheme" throws exception with invalid argument.
      *
-     * @test
-     * @dataProvider    schemeInvalidValuesDataProvider
+     * @dataProvider        dataProviderSchemeInvalidValues
+     * @expectedException   InvalidArgumentException
      *
-     * @param           string $scheme              Scheme.
+     * @param               string $scheme              Scheme.
      *
-     * @return          void
-     * @throws          Throwable
+     * @return              void
+     * @throws              Throwable
      ************************************************************************/
-    public function withSchemeExceptionThrowing(string $scheme) : void
+    public function testWithSchemeThrowsException(string $scheme) : void
     {
-        try
-        {
-            (new Uri)->withScheme($scheme);
+        (new Uri)->withScheme($scheme);
 
-            self::fail
-            (
-                "Method \"Uri::withScheme\" threw no expected exception.\n".
-                "Expecting \"InvalidArgumentException\" exception on setting scheme \"$scheme\".\n".
-                "Caught no exception.\n"
-            );
-        }
-        catch (InvalidArgumentException $exception)
-        {
-            self::assertTrue(true);
-        }
+        self::fail
+        (
+            "Method \"Uri::withScheme\" threw no expected exception.\n".
+            "Expects \"InvalidArgumentException\" exception on setting scheme \"$scheme\".\n".
+            "Caught no exception.\n"
+        );
     }
     /** **********************************************************************
-     * Testing method "Uri::getScheme" provides valid normalized value.
+     * Test "Uri::withHost" throws exception with invalid argument.
      *
-     * @test
-     * @dataProvider    schemeValidValuesDataProvider
+     * @dataProvider        dataProviderHostInvalidValues
+     * @expectedException   InvalidArgumentException
      *
-     * @param           string  $providedScheme     Provided scheme.
-     * @param           string  $expectedScheme     Expected scheme.
+     * @param               string $host                Host.
      *
-     * @return          void
-     * @throws          Throwable
+     * @return              void
+     * @throws              Throwable
      ************************************************************************/
-    public function getSchemeValueProviding(string $providedScheme, string $expectedScheme) : void
+    public function testWithHostThrowsException(string $host) : void
     {
-        try
-        {
-            $caughtScheme = (new Uri)->withScheme($providedScheme)->getScheme();
+        (new Uri)->withHost($host);
 
-            self::assertEquals
-            (
-                $expectedScheme,
-                $caughtScheme,
-                "Method \"Uri::getScheme\" returned unexpected result.\n".
-                "Expecting result after setting scheme \"$providedScheme\" is \"$expectedScheme\".\n".
-                "Caught result is \"$caughtScheme\".\n"
-            );
-        }
-        catch (InvalidArgumentException $exception)
-        {
-            self::fail
-            (
-                "Method \"Uri::withScheme\" threw unexpected exception.\n".
-                "Expecting no exception on setting scheme \"$providedScheme\".\n".
-                "Caught exception with message \"{$exception->getMessage()}\".\n"
-            );
-        }
+        self::fail
+        (
+            "Method \"Uri::withHost\" threw no expected exception.\n".
+            "Expects \"InvalidArgumentException\" exception on setting host \"$host\".\n".
+            "Caught no exception.\n"
+        );
     }
     /** **********************************************************************
-     * Testing method "Uri::withHost" throws exception with scheme invalid values.
+     * Test "Uri::withPort" throws exception with invalid argument.
      *
-     * @test
-     * @dataProvider    hostInvalidValuesDataProvider
+     * @dataProvider        dataProviderPortInvalidValues
+     * @expectedException   InvalidArgumentException
      *
-     * @param           string $host                Host.
+     * @param               int $port                   Port.
      *
-     * @return          void
-     * @throws          Throwable
+     * @return              void
+     * @throws              Throwable
      ************************************************************************/
-    public function withHostExceptionThrowing(string $host) : void
+    public function testWithPortThrowsException(int $port) : void
     {
-        try
-        {
-            (new Uri)->withHost($host);
+        (new Uri)->withPort($port);
 
-            self::fail
-            (
-                "Method \"Uri::withHost\" threw no expected exception.\n".
-                "Expecting \"InvalidArgumentException\" exception on setting host \"$host\".\n".
-                "Caught no exception.\n"
-            );
-        }
-        catch (InvalidArgumentException $exception)
-        {
-            self::assertTrue(true);
-        }
+        self::fail
+        (
+            "Method \"Uri::withPort\" threw no expected exception.\n".
+            "Expects \"InvalidArgumentException\" exception on setting port \"$port\".\n".
+            "Caught no exception.\n"
+        );
     }
     /** **********************************************************************
-     * Testing method "Uri::getHost" provides valid normalized value.
+     * Test "Uri::withPath" throws exception with invalid argument.
      *
-     * @test
-     * @dataProvider    hostValidValuesDataProvider
+     * @dataProvider        dataProviderPathInvalidValues
+     * @expectedException   InvalidArgumentException
      *
-     * @param           string  $providedHost       Provided host.
-     * @param           string  $expectedHost       Expected host.
+     * @param               string $path                Path.
      *
-     * @return          void
-     * @throws          Throwable
+     * @return              void
+     * @throws              Throwable
      ************************************************************************/
-    public function getHostValueProviding(string $providedHost, string $expectedHost) : void
+    public function testWithPathThrowsException(string $path) : void
     {
-        try
-        {
-            $caughtHost = (new Uri)->withHost($providedHost)->getHost();
+        (new Uri)->withPath($path);
 
-            self::assertEquals
-            (
-                $expectedHost,
-                $caughtHost,
-                "Method \"Uri::getHost\" returned unexpected result.\n".
-                "Expecting result after setting host \"$providedHost\" is \"$expectedHost\".\n".
-                "Caught result is \"$caughtHost\".\n"
-            );
-        }
-        catch (InvalidArgumentException $exception)
-        {
-            self::fail
-            (
-                "Method \"Uri::withHost\" threw unexpected exception.\n".
-                "Expecting no exception on setting host \"$providedHost\".\n".
-                "Caught exception with message \"{$exception->getMessage()}\".\n"
-            );
-        }
+        self::fail
+        (
+            "Method \"Uri::withPath\" threw no expected exception.\n".
+            "Expects \"InvalidArgumentException\" exception on setting path \"$path\".\n".
+            "Caught no exception.\n"
+        );
     }
     /** **********************************************************************
-     * Testing method "Uri::withPort" throws exception with scheme invalid values.
+     * Test "Uri::withQuery" throws exception with invalid argument.
      *
-     * @test
-     * @dataProvider    portInvalidValuesDataProvider
+     * @dataProvider        dataProviderQueryInvalidValues
+     * @expectedException   InvalidArgumentException
      *
-     * @param           int $port                   Port.
+     * @param               string $query               Query.
      *
-     * @return          void
-     * @throws          Throwable
+     * @return              void
+     * @throws              Throwable
      ************************************************************************/
-    public function withPortExceptionThrowing(int $port) : void
+    public function testWithQueryThrowsException(string $query) : void
     {
-        try
-        {
-            (new Uri)->withPort($port);
+        (new Uri)->withQuery($query);
 
-            self::fail
-            (
-                "Method \"Uri::withPort\" threw no expected exception.\n".
-                "Expecting \"InvalidArgumentException\" exception on setting port \"$port\".\n".
-                "Caught no exception.\n"
-            );
-        }
-        catch (InvalidArgumentException $exception)
-        {
-            self::assertTrue(true);
-        }
+        self::fail
+        (
+            "Method \"Uri::withQuery\" threw no expected exception.\n".
+            "Expects \"InvalidArgumentException\" exception on setting query \"$query\".\n".
+            "Caught no exception.\n"
+        );
     }
     /** **********************************************************************
-     * Testing method "Uri::getPort" provides valid normalized value.
+     * Test "Uri::getScheme" provides valid normalized value.
      *
-     * @test
-     * @dataProvider    portValidValuesDataProvider
+     * @dataProvider    dataProviderSchemeValidValues
      *
-     * @param           int     $providedPort       Provided port.
-     * @param           mixed   $expectedPort       Expected port.
+     * @param           string  $scheme                 Scheme.
+     * @param           string  $normalizedScheme       Normalized scheme.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function getPortValueProviding(int $providedPort, $expectedPort) : void
+    public function testGetScheme(string $scheme, string $normalizedScheme) : void
     {
-        try
-        {
-            $caughtPort = (new Uri)->withPort($providedPort)->getPort();
+        $caughtScheme = (new Uri)->withScheme($scheme)->getScheme();
 
-            self::assertEquals
-            (
-                $expectedPort,
-                $caughtPort,
-                "Method \"Uri::getPort\" returned unexpected result.\n".
-                "Expecting result after setting port \"$providedPort\" is \"$expectedPort\".\n".
-                "Caught result is \"$caughtPort\".\n"
-            );
-        }
-        catch (InvalidArgumentException $exception)
-        {
-            self::fail
-            (
-                "Method \"Uri::withPort\" threw unexpected exception.\n".
-                "Expecting no exception on setting port \"$providedPort\".\n".
-                "Caught exception with message \"{$exception->getMessage()}\".\n"
-            );
-        }
+        self::assertEquals
+        (
+            $normalizedScheme,
+            $caughtScheme,
+            "Method \"Uri::getScheme\" returned unexpected result.\n".
+            "Expected result after setting scheme \"$scheme\" is \"$normalizedScheme\".\n".
+            "Caught result is \"$caughtScheme\".\n"
+        );
     }
     /** **********************************************************************
-     * Testing method "Uri::getPort" provides null if port is standard for given scheme.
+     * Test "Uri::getHost" provides valid normalized value.
      *
-     * @test
-     * @dataProvider    portStandardValuesDataProvider
+     * @dataProvider    dataProviderHostValidValues
      *
-     * @param           string  $scheme             Scheme.
-     * @param           int     $port               Port.
+     * @param           string  $host                   Host.
+     * @param           string  $normalizedHost         Normalized host.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function getPortValueProvidingForStandardPort(string $scheme, int $port) : void
+    public function testGetHost(string $host, string $normalizedHost) : void
     {
-        try
-        {
-            $caughtPort = (new Uri)
-                ->withScheme($scheme)
-                ->withPort($port)
-                ->getPort();
+        $caughtHost = (new Uri)->withHost($host)->getHost();
 
-            self::assertEquals
-            (
-                null,
-                $caughtPort,
-                "Method \"Uri::getPort\" returned unexpected result.\n".
-                "Expecting result after setting scheme \"$scheme\" and port \"$port\" is null.\n".
-                "Caught result is \"$caughtPort\".\n"
-            );
-        }
-        catch (InvalidArgumentException $exception)
-        {
-            self::fail
-            (
-                "Method \"Uri::withScheme\" or \"Uri::withPort\" threw unexpected exception.\n".
-                "Expecting no exception on setting scheme \"$scheme\" and port \"$port\".\n".
-                "Caught exception with message \"{$exception->getMessage()}\".\n"
-            );
-        }
+        self::assertEquals
+        (
+            $normalizedHost,
+            $caughtHost,
+            "Method \"Uri::getHost\" returned unexpected result.\n".
+            "Expected result after setting host \"$host\" is \"$normalizedHost\".\n".
+            "Caught result is \"$caughtHost\".\n"
+        );
     }
     /** **********************************************************************
-     * Testing method "Uri::getUserInfo" provides valid normalized value.
+     * Test "Uri::getPort" provides valid normalized value.
      *
-     * @test
-     * @dataProvider    userInfoDataProvider
+     * @dataProvider    dataProviderPortValidValues
      *
-     * @param           string  $login              Login.
-     * @param           string  $password           Password.
-     * @param           string  $expectedInfo       Expected user info.
+     * @param           int     $port                   Port.
+     * @param           mixed   $normalizedPort         Normalized port.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function getUserInfoValueProviding(string $login, string $password, string $expectedInfo) : void
+    public function testGetPort(int $port, $normalizedPort) : void
+    {
+        $caughtPort = (new Uri)->withPort($port)->getPort();
+
+        self::assertEquals
+        (
+            $normalizedPort,
+            $caughtPort,
+            "Method \"Uri::getPort\" returned unexpected result.\n".
+            "Expected result after setting port \"$port\" is \"$normalizedPort\".\n".
+            "Caught result is \"$caughtPort\".\n"
+        );
+    }
+    /** **********************************************************************
+     * Test "Uri::getPort" provides null if port is standard for given scheme.
+     *
+     * @dataProvider    dataProviderSchemeStandardPorts
+     *
+     * @param           string  $scheme                 Scheme.
+     * @param           int     $port                   Port.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function testGetPortWithStandardPort(string $scheme, int $port) : void
+    {
+        $caughtPort = (new Uri)
+            ->withScheme($scheme)
+            ->withPort($port)
+            ->getPort();
+
+        self::assertEquals
+        (
+            null,
+            $caughtPort,
+            "Method \"Uri::getPort\" returned unexpected result.\n".
+            "Expected result after setting scheme \"$scheme\" and port \"$port\" is null.\n".
+            "Caught result is \"$caughtPort\".\n"
+        );
+    }
+    /** **********************************************************************
+     * Test "Uri::getUserInfo" provides valid normalized value.
+     *
+     * @dataProvider    dataProviderUserInfo
+     *
+     * @param           string  $login                  Login.
+     * @param           string  $password               Password.
+     * @param           string  $normalizedInfo         Normalized user info.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function testGetUserInfo
+    (
+        string  $login,
+        string  $password,
+        string  $normalizedInfo
+    ) : void
     {
         $caughtInfo = (new Uri)->withUserInfo($login, $password)->getUserInfo();
 
         self::assertEquals
         (
-            $expectedInfo,
+            $normalizedInfo,
             $caughtInfo,
             "Method \"Uri::getUserInfo\" returned unexpected result.\n".
-            "Expecting result after setting login \"$login\" and password \"$password\" is \"$expectedInfo\".\n".
+            "Expected result after setting login \"$login\" and password \"$password\"".
+            " is \"$normalizedInfo\".\n".
             "Caught result is \"$caughtInfo\".\n"
         );
     }
     /** **********************************************************************
-     * Testing method "Uri::getAuthority" provides valid normalized value.
+     * Test "Uri::getAuthority" provides valid normalized value.
      *
-     * @test
-     * @dataProvider    authorityDataProvider
+     * @dataProvider    dataProviderAuthority
      *
-     * @param           string  $login              Login.
-     * @param           string  $password           Password.
-     * @param           string  $host               Host.
-     * @param           int     $port               Port.
-     * @param           string  $expectedAuthority  Expected authority.
+     * @param           string  $login                  Login.
+     * @param           string  $password               Password.
+     * @param           string  $host                   Host.
+     * @param           int     $port                   Port.
+     * @param           string  $normalizedAuthority    Normalized authority.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function getAuthorityValueProviding
+    public function testGetAuthority
     (
         string  $login,
         string  $password,
         string  $host,
         int     $port,
-        string  $expectedAuthority
+        string  $normalizedAuthority
     ) : void
     {
-        $uri    = new Uri;
-        $uri    = $uri->withUserInfo($login, $password);
+        $uri = (new Uri)->withUserInfo($login, $password);
 
         try
         {
@@ -356,6 +326,7 @@ class UriTest extends TestCase
         {
 
         }
+
         try
         {
             $uri = $uri->withPort($port);
@@ -369,191 +340,107 @@ class UriTest extends TestCase
 
         self::assertEquals
         (
-            $expectedAuthority,
+            $normalizedAuthority,
             $caughtAuthority,
             "Method \"Uri::getAuthority\" returned unexpected result.\n".
-            "Expecting result after setting login \"$login\", password \"$password\", ".
-            "host \"$host\" and port \"$port\" is \"$expectedAuthority\".\n".
+            "Expected result after setting login \"$login\", password \"$password\", ".
+            "host \"$host\" and port \"$port\" is \"$normalizedAuthority\".\n".
             "Caught authority is \"$caughtAuthority\".\n"
         );
     }
     /** **********************************************************************
-     * Testing method "Uri::withPath" throws exception with path invalid values.
+     * Test "Uri::getPath" provides valid normalized value.
      *
-     * @test
-     * @dataProvider    pathInvalidValuesDataProvider
+     * @dataProvider    dataProviderPathValidValues
      *
-     * @param           string $path                Path.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
-    public function withPathExceptionThrowing(string $path) : void
-    {
-        try
-        {
-            (new Uri)->withPath($path);
-
-            self::fail
-            (
-                "Method \"Uri::withPath\" threw no expected exception.\n".
-                "Expecting \"InvalidArgumentException\" exception on setting path \"$path\".\n".
-                "Caught no exception.\n"
-            );
-        }
-        catch (InvalidArgumentException $exception)
-        {
-            self::assertTrue(true);
-        }
-    }
-    /** **********************************************************************
-     * Testing method "Uri::getPath" provides valid normalized value.
-     *
-     * @test
-     * @dataProvider    pathValidValuesDataProvider
-     *
-     * @param           string  $providedPath       Provided path.
-     * @param           string  $expectedPath       Expected path.
+     * @param           string  $path                   Path.
+     * @param           string  $normalizedPath         Normalized path.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function getPathValueProviding(string $providedPath, string $expectedPath) : void
+    public function testGetPath(string $path, string $normalizedPath) : void
     {
-        try
-        {
-            $caughtPath = (new Uri)->withPath($providedPath)->getPath();
-
-            self::assertEquals
-            (
-                $expectedPath,
-                $caughtPath,
-                "Method \"Uri::getPath\" returned unexpected result.\n".
-                "Expecting result after setting path \"$providedPath\" is \"$expectedPath\".\n".
-                "Caught result is \"$caughtPath\".\n"
-            );
-        }
-        catch (InvalidArgumentException $exception)
-        {
-            self::fail
-            (
-                "Method \"Uri::withPath\" threw unexpected exception.\n".
-                "Expecting no exception on setting path \"$providedPath\".\n".
-                "Caught exception with message \"{$exception->getMessage()}\".\n"
-            );
-        }
-    }
-    /** **********************************************************************
-     * Testing method "Uri::withQuery" throws exception with query invalid values.
-     *
-     * @test
-     * @dataProvider    queryInvalidValuesDataProvider
-     *
-     * @param           string $query               Query.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
-    public function withQueryExceptionThrowing(string $query) : void
-    {
-        try
-        {
-            (new Uri)->withQuery($query);
-
-            self::fail
-            (
-                "Method \"Uri::withQuery\" threw no expected exception.\n".
-                "Expecting \"InvalidArgumentException\" exception on setting query \"$query\".\n".
-                "Caught no exception.\n"
-            );
-        }
-        catch (InvalidArgumentException $exception)
-        {
-            self::assertTrue(true);
-        }
-    }
-    /** **********************************************************************
-     * Testing method "Uri::getQuery" provides valid normalized value.
-     *
-     * @test
-     * @dataProvider    queryValidValuesDataProvider
-     *
-     * @param           string  $providedQuery      Provided query.
-     * @param           string  $expectedQuery      Expected query.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
-    public function getQueryValueProviding(string $providedQuery, string $expectedQuery) : void
-    {
-        try
-        {
-            $caughtQuery = (new Uri)->withQuery($providedQuery)->getQuery();
-
-            self::assertEquals
-            (
-                $expectedQuery,
-                $caughtQuery,
-                "Method \"Uri::getQuery\" returned unexpected result.\n".
-                "Expecting result after setting query \"$providedQuery\" is \"$expectedQuery\".\n".
-                "Caught result is \"$caughtQuery\".\n"
-            );
-        }
-        catch (InvalidArgumentException $exception)
-        {
-            self::fail
-            (
-                "Method \"Uri::withQuery\" threw unexpected exception.\n".
-                "Expecting no exception on setting query \"$providedQuery\".\n".
-                "Caught exception with message \"{$exception->getMessage()}\".\n"
-            );
-        }
-    }
-    /** **********************************************************************
-     * Testing method "Uri::getFragment" provides valid normalized value.
-     *
-     * @test
-     * @dataProvider    fragmentDataProvider
-     *
-     * @param           string  $providedFragment   Provided fragment.
-     * @param           string  $expectedFragment   Expected fragment.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
-    public function getFragmentValueProviding(string $providedFragment, string $expectedFragment) : void
-    {
-        $caughtFragment = (new Uri)->withFragment($providedFragment)->getFragment();
+        $caughtPath = (new Uri)
+            ->withPath($path)
+            ->getPath();
 
         self::assertEquals
         (
-            $expectedFragment,
+            $normalizedPath,
+            $caughtPath,
+            "Method \"Uri::getPath\" returned unexpected result.\n".
+            "Expected result after setting path \"$path\" is \"$normalizedPath\".\n".
+            "Caught result is \"$caughtPath\".\n"
+        );
+    }
+    /** **********************************************************************
+     * Test "Uri::getQuery" provides valid normalized value.
+     *
+     * @dataProvider    dataProviderQueryValidValues
+     *
+     * @param           string  $query                  Query.
+     * @param           string  $normalizedQuery        Normalized query.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function testGetQuery(string $query, string $normalizedQuery) : void
+    {
+        $caughtQuery = (new Uri)->withQuery($query)->getQuery();
+
+        self::assertEquals
+        (
+            $normalizedQuery,
+            $caughtQuery,
+            "Method \"Uri::getQuery\" returned unexpected result.\n".
+            "Expected result after setting query \"$query\" is \"$normalizedQuery\".\n".
+            "Caught result is \"$caughtQuery\".\n"
+        );
+    }
+    /** **********************************************************************
+     * Test "Uri::getFragment" provides valid normalized value.
+     *
+     * @dataProvider    dataProviderFragment
+     *
+     * @param           string  $fragment               Fragment.
+     * @param           string  $normalizedFragment     Normalized fragment.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function testGetFragment(string $fragment, string $normalizedFragment) : void
+    {
+        $caughtFragment = (new Uri)->withFragment($fragment)->getFragment();
+
+        self::assertEquals
+        (
+            $normalizedFragment,
             $caughtFragment,
             "Method \"Uri::getFragment\" returned unexpected result.\n".
-            "Expecting result after setting fragment \"$providedFragment\" is \"$expectedFragment\".\n".
+            "Expected result after setting fragment \"$fragment\" is \"$normalizedFragment\".\n".
             "Caught result is \"$caughtFragment\".\n"
         );
     }
     /** **********************************************************************
-     * Testing method "Uri::__toString" provides valid normalized value.
+     * Test URI object converts to string.
      *
-     * @test
-     * @dataProvider    uriDataProvider
+     * @dataProvider    dataProviderUriByParts
      *
-     * @param           string  $scheme             Scheme.
-     * @param           string  $login              Login.
-     * @param           string  $password           Password.
-     * @param           string  $host               Host.
-     * @param           int     $port               Port.
-     * @param           string  $path               Path.
-     * @param           string  $query              Query.
-     * @param           string  $fragment           Fragment.
-     * @param           string  $expectedUri        Expected uri string.
+     * @param           string  $scheme                 Scheme.
+     * @param           string  $login                  Login.
+     * @param           string  $password               Password.
+     * @param           string  $host                   Host.
+     * @param           int     $port                   Port.
+     * @param           string  $path                   Path.
+     * @param           string  $query                  Query.
+     * @param           string  $fragment               Fragment.
+     * @param           string  $normalizedUri          Normalized URI string.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function toStringValueProviding
+    public function testToStringConverting
     (
         string  $scheme,
         string  $login,
@@ -563,7 +450,7 @@ class UriTest extends TestCase
         string  $path,
         string  $query,
         string  $fragment,
-        string  $expectedUri
+        string  $normalizedUri
     ) : void
     {
         $uri = new Uri;
@@ -620,21 +507,21 @@ class UriTest extends TestCase
 
         self::assertEquals
         (
-            $expectedUri,
+            $normalizedUri,
             $caughtUri,
             "Method \"Uri::__toString\" returned unexpected result.\n".
-            "Expecting result after setting scheme \"$scheme\", login \"$login\", ".
+            "Expected result after setting scheme \"$scheme\", login \"$login\", ".
             "password \"$password\", host \"$host\", port \"$port\", path \"$path\", ".
-            "query \"$query\", fragment \"$fragment\" is \"$expectedUri\".\n".
+            "query \"$query\", fragment \"$fragment\" is \"$normalizedUri\".\n".
             "Caught result is \"$caughtUri\".\n"
         );
     }
     /** **********************************************************************
-     * Scheme valid values data provider.
+     * Data provider: scheme valid values.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function schemeValidValuesDataProvider() : array
+    public function dataProviderSchemeValidValues() : array
     {
         $values = UriDataGenerator::getSchemeValues();
         $result = [];
@@ -652,11 +539,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Scheme invalid values data provider.
+     * Data provider: scheme invalid values.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function schemeInvalidValuesDataProvider() : array
+    public function dataProviderSchemeInvalidValues() : array
     {
         $values = UriDataGenerator::getSchemeValues();
         $result = [];
@@ -672,11 +559,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Host valid values data provider.
+     * Data provider: host valid values.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function hostValidValuesDataProvider() : array
+    public function dataProviderHostValidValues() : array
     {
         $values = UriDataGenerator::getHostValues();
         $result = [];
@@ -694,11 +581,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Host invalid values data provider.
+     * Data provider: host invalid values.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function hostInvalidValuesDataProvider() : array
+    public function dataProviderHostInvalidValues() : array
     {
         $values = UriDataGenerator::getHostValues();
         $result = [];
@@ -714,11 +601,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Port valid values data provider.
+     * Data provider: port valid values.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function portValidValuesDataProvider() : array
+    public function dataProviderPortValidValues() : array
     {
         $values = UriDataGenerator::getPortValues();
         $result = [];
@@ -736,11 +623,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Port invalid values data provider.
+     * Data provider: port invalid values.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function portInvalidValuesDataProvider() : array
+    public function dataProviderPortInvalidValues() : array
     {
         $values = UriDataGenerator::getPortValues();
         $result = [];
@@ -756,11 +643,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Standard ports for scheme data provider.
+     * Data provider: schemes with standard ports.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function portStandardValuesDataProvider() : array
+    public function dataProviderSchemeStandardPorts() : array
     {
         $result = [];
 
@@ -772,11 +659,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * User info data provider.
+     * Data provider: user info.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function userInfoDataProvider() : array
+    public function dataProviderUserInfo() : array
     {
         $values = UriDataGenerator::getUserInfoValues();
         $result = [];
@@ -797,11 +684,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Authority data provider.
+     * Data provider: authority.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function authorityDataProvider() : array
+    public function dataProviderAuthority() : array
     {
         $userInfoValues = UriDataGenerator::getUserInfoValues();
         $hostValues     = UriDataGenerator::getHostValues();
@@ -856,11 +743,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Path valid values data provider.
+     * Data provider: path valid values.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function pathValidValuesDataProvider() : array
+    public function dataProviderPathValidValues() : array
     {
         $values = UriDataGenerator::getPathValues();
         $result = [];
@@ -878,11 +765,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Path invalid values data provider.
+     * Data provider: path invalid values.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function pathInvalidValuesDataProvider() : array
+    public function dataProviderPathInvalidValues() : array
     {
         $values = UriDataGenerator::getPathValues();
         $result = [];
@@ -898,11 +785,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Query valid values data provider.
+     * Data provider: query valid values.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function queryValidValuesDataProvider() : array
+    public function dataProviderQueryValidValues() : array
     {
         $values = UriDataGenerator::getQueryValues();
         $result = [];
@@ -920,11 +807,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Query invalid values data provider.
+     * Data provider: query invalid values.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function queryInvalidValuesDataProvider() : array
+    public function dataProviderQueryInvalidValues() : array
     {
         $values = UriDataGenerator::getQueryValues();
         $result = [];
@@ -940,11 +827,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Fragment data provider.
+     * Data provider: fragment.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function fragmentDataProvider() : array
+    public function dataProviderFragment() : array
     {
         $values = UriDataGenerator::getFragmentValues();
         $result = [];
@@ -959,11 +846,11 @@ class UriTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Uri data provider.
+     * Data provider: URI by parts.
      *
-     * @return  array                               Data.
+     * @return  array                                   Data.
      ************************************************************************/
-    public function uriDataProvider() : array
+    public function dataProviderUriByParts() : array
     {
         return
             [

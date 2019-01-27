@@ -257,7 +257,12 @@ class Uri implements UriInterface
             }
             catch (NormalizingException $exception)
             {
-                throw new InvalidArgumentException("scheme is invalid: {$exception->getMessage()}");
+                throw new InvalidArgumentException
+                (
+                    "scheme is invalid: {$exception->getMessage()}",
+                    0,
+                    $exception
+                );
             }
         }
 

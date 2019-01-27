@@ -54,7 +54,7 @@ class UriPath
                 {
                     throw new NormalizingException
                     (
-                        "path part validation error, \"{$exception->getMessage()}\"",
+                        "path part \"$part\" validation error, \"{$exception->getMessage()}\"",
                         0,
                         $exception
                     );

@@ -43,7 +43,7 @@ class IpAddress
         {
             throw new NormalizingException
             (
-                "ip address v4 \"$ipAddress\" is not ip address v4"
+                "value \"$ipAddress\" is not ip address v4"
             );
         }
 
@@ -261,7 +261,7 @@ class IpAddress
     {
         if (!is_numeric($segment))
         {
-            throw new NormalizingException("\"$segment\" is not numeric value");
+            throw new NormalizingException("value \"$segment\" is not numeric");
         }
 
         $segmentNumeric = (int) $segment;
@@ -270,11 +270,11 @@ class IpAddress
 
         if ($segmentNumeric < self::V4_PART_MIN_VALUE)
         {
-            throw new NormalizingException("\"$segmentNumeric\" less than $minValue");
+            throw new NormalizingException("value \"$segmentNumeric\" less than $minValue");
         }
         if ($segmentNumeric > self::V4_PART_MAX_VALUE)
         {
-            throw new NormalizingException("\"$segmentNumeric\" grater than $maxValue");
+            throw new NormalizingException("value \"$segmentNumeric\" grater than $maxValue");
         }
 
         return (string) $segmentNumeric;
@@ -298,7 +298,7 @@ class IpAddress
         {
             throw new NormalizingException
             (
-                "\"$segment\" does not matched the pattern \"$mask\""
+                "value \"$segment\" does not matched the pattern \"$mask\""
             );
         }
 

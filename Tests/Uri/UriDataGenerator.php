@@ -471,7 +471,7 @@ class UriDataGenerator
 
         foreach (self::SPECIAL_CHARS as $char)
         {
-            if (in_array($char, ['=', '&', '?']))
+            if (in_array($char, ['=', '&', '?', '#']))
             {
                 continue;
             }

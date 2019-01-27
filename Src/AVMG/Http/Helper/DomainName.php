@@ -40,7 +40,7 @@ class DomainName
         {
             throw new NormalizingException
             (
-                "domain name \"$domainName\" does not matched the pattern \"$domainNameMask\""
+                "value \"$domainName\" does not matched the pattern \"$domainNameMask\""
             );
         }
 

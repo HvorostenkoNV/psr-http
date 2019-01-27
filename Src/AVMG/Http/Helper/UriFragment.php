@@ -24,7 +24,7 @@ class UriFragment
     {
         if (strlen($fragment) <= 0)
         {
-            throw new NormalizingException('fragment is empty');
+            throw new NormalizingException('value is empty');
         }
 
         $fragmentConverted = str_replace(' ', '%20', $fragment);

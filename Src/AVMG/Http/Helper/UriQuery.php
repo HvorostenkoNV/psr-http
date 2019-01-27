@@ -58,7 +58,7 @@ class UriQuery
 
         if (count($queryExploded) <= 0)
         {
-            throw new NormalizingException("query \"$query\" is empty after normalization");
+            throw new NormalizingException("value \"$query\" is empty after normalization");
         }
 
         return implode('&', $queryExploded);

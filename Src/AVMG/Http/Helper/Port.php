@@ -51,11 +51,11 @@ class Port
 
         if ($port < $minValue)
         {
-            throw new NormalizingException("port \"$port\" is less then $minValue");
+            throw new NormalizingException("value \"$port\" is less then $minValue");
         }
         if ($port > $maxValue)
         {
-            throw new NormalizingException("port \"$port\" is grater then $minValue");
+            throw new NormalizingException("value \"$port\" is grater then $minValue");
         }
 
         return $port;
