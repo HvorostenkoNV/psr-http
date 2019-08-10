@@ -7,7 +7,7 @@ use AVMG\Http\Exception\NormalizingException;
 /** ***********************************************************************************************
  * HTTP request method class.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 class RequestMethod
@@ -32,7 +32,7 @@ class RequestMethod
      * @return  string                      Normalized HTTP request method.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
-    public static function normalize(string $method) : string
+    public static function normalize(string $method): string
     {
         $method = strtoupper($method);
 
@@ -48,7 +48,7 @@ class RequestMethod
      *
      * @return  string[]                    Available HTTP request methods.
      ************************************************************************/
-    public static function getAvailableValues() : array
+    public static function getAvailableValues(): array
     {
         return self::AVAILABLE_METHODS;
     }

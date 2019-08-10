@@ -3,16 +3,17 @@ declare(strict_types=1);
 
 namespace Psr\Http\Server;
 
-use
-    Psr\Http\Message\ResponseInterface,
-    Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\{
+    Message\ResponseInterface,
+    Message\ServerRequestInterface
+};
 /** ***********************************************************************************************
  * Handles a server request and produces a response.
  *
  * An HTTP request handler process an HTTP request in order to produce an
  * HTTP response.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface RequestHandlerInterface
@@ -26,5 +27,5 @@ interface RequestHandlerInterface
      *
      * @return  ResponseInterface                   Response.
      ************************************************************************/
-    public function handle(ServerRequestInterface $request) : ResponseInterface;
+    public function handle(ServerRequestInterface $request): ResponseInterface;
 }

@@ -42,7 +42,7 @@ use InvalidArgumentException;
  * be implemented such that they retain the internal state of the current
  * message and return an instance that contains the changed state.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface ServerRequestInterface extends RequestInterface
@@ -56,7 +56,7 @@ interface ServerRequestInterface extends RequestInterface
      *
      * @return  array                       Server parameters.
      ************************************************************************/
-    public function getServerParams() : array;
+    public function getServerParams(): array;
     /** **********************************************************************
      * Retrieve cookies.
      *
@@ -65,7 +65,7 @@ interface ServerRequestInterface extends RequestInterface
      *
      * @return  array                       Cookies.
      ************************************************************************/
-    public function getCookieParams() : array;
+    public function getCookieParams(): array;
     /** **********************************************************************
      * Return an instance with the specified cookies.
      *
@@ -84,7 +84,7 @@ interface ServerRequestInterface extends RequestInterface
      *
      * @return  ServerRequestInterface      Instance with the specified cookies.
      ************************************************************************/
-    public function withCookieParams(array $cookies) : ServerRequestInterface;
+    public function withCookieParams(array $cookies): ServerRequestInterface;
     /** **********************************************************************
      * Retrieve query string arguments.
      *
@@ -97,7 +97,7 @@ interface ServerRequestInterface extends RequestInterface
      *
      * @return  array                       Query string arguments.
      ************************************************************************/
-    public function getQueryParams() : array;
+    public function getQueryParams(): array;
     /** **********************************************************************
      * Return an instance with the specified query string arguments.
      *
@@ -121,7 +121,7 @@ interface ServerRequestInterface extends RequestInterface
      *
      * @return  ServerRequestInterface      Instance with the specified query string arguments.
      ************************************************************************/
-    public function withQueryParams(array $query) : ServerRequestInterface;
+    public function withQueryParams(array $query): ServerRequestInterface;
     /** **********************************************************************
      * Retrieve normalized file upload data.
      *
@@ -134,7 +134,7 @@ interface ServerRequestInterface extends RequestInterface
      * @return  array                       Array tree of UploadedFileInterface instances;
      *                                      an empty array MUST be returned if no data is present.
      ************************************************************************/
-    public function getUploadedFiles() : array;
+    public function getUploadedFiles(): array;
     /** **********************************************************************
      * Create a new instance with the specified uploaded files.
      *
@@ -147,7 +147,7 @@ interface ServerRequestInterface extends RequestInterface
      * @return  ServerRequestInterface      Instance with the specified uploaded files.
      * @throws  InvalidArgumentException    Invalid structure is provided.
      ************************************************************************/
-    public function withUploadedFiles(array $uploadedFiles) : ServerRequestInterface;
+    public function withUploadedFiles(array $uploadedFiles): ServerRequestInterface;
     /** **********************************************************************
      * Retrieve any parameters provided in the request body.
      *
@@ -192,7 +192,7 @@ interface ServerRequestInterface extends RequestInterface
      * @return  ServerRequestInterface      Instance with the specified body parameters.
      * @throws  InvalidArgumentException    Unsupported argument type is provided.
      ************************************************************************/
-    public function withParsedBody($data) : ServerRequestInterface;
+    public function withParsedBody($data): ServerRequestInterface;
     /** **********************************************************************
      * Retrieve attributes derived from the request.
      *
@@ -204,7 +204,7 @@ interface ServerRequestInterface extends RequestInterface
      *
      * @return  mixed[]                     Attributes derived from the request.
      ************************************************************************/
-    public function getAttributes() : array;
+    public function getAttributes(): array;
     /** **********************************************************************
      * Retrieve a single derived request attribute.
      *
@@ -242,7 +242,7 @@ interface ServerRequestInterface extends RequestInterface
      * @return  ServerRequestInterface      Instance with the specified derived
      *                                      request attribute.
      ************************************************************************/
-    public function withAttribute(string $name, $value) : ServerRequestInterface;
+    public function withAttribute(string $name, $value): ServerRequestInterface;
     /** **********************************************************************
      * Return an instance that removes the specified derived request attribute.
      *
@@ -260,5 +260,5 @@ interface ServerRequestInterface extends RequestInterface
      * @return  ServerRequestInterface      Instance that removes the specified
      *                                      derived request attribute.
      ************************************************************************/
-    public function withoutAttribute(string $name) : ServerRequestInterface;
+    public function withoutAttribute(string $name): ServerRequestInterface;
 }

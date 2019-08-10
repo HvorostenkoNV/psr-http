@@ -3,98 +3,92 @@ declare(strict_types=1);
 
 namespace AVMG\Http\Factory;
 
-use
-    RuntimeException,
-    InvalidArgumentException,
-    AVMG\Http\Exception\NormalizingException,
-    SplFileInfo,
-    Psr\Http\Message\StreamInterface,
-    Psr\Http\Message\StreamFactoryInterface,
-    AVMG\Http\Helper\ResourceAccessMode,
-    AVMG\Http\Stream\Stream;
+use InvalidArgumentException;
+use RuntimeException;
+use Psr\Http\{
+    Message\StreamInterface,
+    Message\StreamFactoryInterface
+};
+use AVMG\Http\{
+    Normalizer\NormalizingException,
+    Normalizer\NormalizerProxy,
+    Collection\CollectionProxy,
+    Stream\Stream
+};
+
+use function strlen;
+use function fopen;
+use function array_shift;
+use function file_exists;
 /** ***********************************************************************************************
  * PSR-7 StreamFactoryInterface implementation.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 class StreamFactory implements StreamFactoryInterface
 {
     /** **********************************************************************
-     * Create a new stream from a string.
-     *
-     * The stream SHOULD be created with a temporary resource.
-     *
-     * @param   string $content             String content with which to populate the stream.
-     *
-     * @return  StreamInterface             New stream.
+     * @inheritDoc
      ************************************************************************/
-    public function createStream(string $content = '') : StreamInterface
+    public function createStream(string $content = ''): StreamInterface
     {
-        $mode       = ResourceAccessMode::get('readWrite');
-        $resource   = fopen('php://temp', $mode);
+        try {
+            $modesSet   = CollectionProxy::receive('resource.accessMode.readableAndWritable');
+            $mode       = array_shift($modesSet);
+        } catch (InvalidArgumentException $exception) {
+            $mode       = '';
+        }
 
-        if ($resource !== false && strlen($content) > 0)
-        {
-            fwrite($resource, $content);
+        $resource   = fopen('php://temp', $mode);
+        $stream     = $this->createStreamFromResource($resource);
+
+        if (strlen($content) > 0) {
+            try {
+                $stream->write($content);
+                $stream->rewind();
+            } catch (RuntimeException $exception) {
+
+            }
+        }
+
+        return $stream;
+    }
+    /** **********************************************************************
+     * @inheritDoc
+     ************************************************************************/
+    public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface
+    {
+        if (!file_exists($filename)) {
+            throw new RuntimeException("file \"$filename\" is not exist");
+        }
+
+        try {
+            $modeNormalized = NormalizerProxy::normalize('resource.accessMode', $mode);
+            $resource       = fopen($filename, $modeNormalized);
+        } catch (InvalidArgumentException | NormalizingException $exception) {
+            throw new InvalidArgumentException("mode \"$mode\" is invalid", 0, $exception);
+        }
+
+        if ($resource === false) {
+            throw new RuntimeException("file \"$filename\" cannot be opened");
         }
 
         return $this->createStreamFromResource($resource);
     }
     /** **********************************************************************
-     * Create a stream from an existing file.
-     *
-     * The file MUST be opened using the given mode, which may be any mode
-     * supported by the `fopen` function.
-     *
-     * The `$filename` MAY be any string supported by `fopen()`.
-     *
-     * @param   string  $filename           The filename or stream URI to use
-     *                                      as basis of stream.
-     * @param   string  $mode               The mode with which to open
-     *                                      the underlying filename/stream.
-     *
-     * @return  StreamInterface             Stream.
-     * @throws  RuntimeException            File cannot be opened.
-     * @throws  InvalidArgumentException    Mode is invalid.
+     * @inheritDoc
      ************************************************************************/
-    public function createStreamFromFile(string $filename, string $mode = 'r') : StreamInterface
+    public function createStreamFromResource($resource): StreamInterface
     {
-        $file = new SplFileInfo($filename);
+        $stream = new Stream($resource);
 
-        if (!$file->isFile())
-        {
-            throw new RuntimeException("file \"$filename\" not found");
-        }
-        if (!$file->isReadable())
-        {
-            throw new RuntimeException("file \"$filename\" is not readable");
+        try {
+            $stream->rewind();
+        } catch (RuntimeException $exception) {
+
         }
 
-        try
-        {
-            $modeNormalized = ResourceAccessMode::normalize($mode);
-            $resource       = fopen($file->getPathname(), $modeNormalized);
-
-            return $this->createStreamFromResource($resource);
-        }
-        catch (NormalizingException $exception)
-        {
-            throw new InvalidArgumentException("mode \"$mode\" is invalid");
-        }
-    }
-    /** **********************************************************************
-     * Create a new stream from an existing resource.
-     *
-     * The stream MUST be readable and may be writable.
-     *
-     * @param   resource $resource          The PHP resource to use as
-     *                                      the basis for the stream.
-     *
-     * @return  StreamInterface             Stream.
-     ************************************************************************/
-    public function createStreamFromResource($resource) : StreamInterface
-    {
-        return new Stream($resource);
+        return $stream;
     }
 }

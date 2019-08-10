@@ -11,7 +11,7 @@ use
 /** ***********************************************************************************************
  * PSR-7 RequestInterface implementation test.
  *
- * @package avmg_psr_http_tests
+ * @package AVMG\Http\Tests
  * @author  Hvorostenko
  *************************************************************************************************/
 class RequestTest extends TestCase
@@ -22,7 +22,7 @@ class RequestTest extends TestCase
      * @return  void
      * @throws  Throwable
      ************************************************************************/
-    public function testTest() : void
+    public function testTest(): void
     {
         self::assertTrue(true);
     }

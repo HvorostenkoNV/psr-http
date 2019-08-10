@@ -13,17 +13,16 @@ use
 /** ***********************************************************************************************
  * PSR-7 RequestInterface abstract implementation.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 abstract class AbstractRequest extends AbstractMessage implements RequestInterface
 {
-    private
-        $uri                = null,
-        $method             = '',
-        $requestTarget      = '';
-    protected const
-        HOST_HEADER_NAME    = 'Host';
+    protected const HOST_HEADER_NAME    = 'Host';
+
+    private         $uri                = null;
+    private         $method             = '';
+    private         $requestTarget      = '';
     /** **********************************************************************
      * Constructor.
      *
@@ -59,15 +58,15 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      *
      * @return string                           Request target.
      ************************************************************************/
-    public function getRequestTarget() : string
+    public function getRequestTarget(): string
     {
         $result = $this->requestTarget;
 
-        if (strlen($this->requestTarget) <= 0)
+        if (strlen($this->requestTarget) === 0)
         {
             $result = $this->getRequestTargetFromUri($this->uri);
         }
-        if (strlen($this->requestTarget) <= 0)
+        if (strlen($this->requestTarget) === 0)
         {
             $result = '/';
         }
@@ -92,7 +91,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      *
      * @return  RequestInterface                Instance with the specific request-target.
      ************************************************************************/
-    public function withRequestTarget(string $requestTarget) : RequestInterface
+    public function withRequestTarget(string $requestTarget): RequestInterface
     {
         $newInstance = clone $this;
 
@@ -112,7 +111,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      *
      * @return string                           Request method.
      ************************************************************************/
-    public function getMethod() : string
+    public function getMethod(): string
     {
         return $this->method;
     }
@@ -132,7 +131,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      * @return  RequestInterface                Instance with the provided HTTP method.
      * @throws  InvalidArgumentException        Invalid HTTP methods.
      ************************************************************************/
-    public function withMethod(string $method) : RequestInterface
+    public function withMethod(string $method): RequestInterface
     {
         try
         {
@@ -155,7 +154,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      *
      * @return  UriInterface                    URI of the request.
      ************************************************************************/
-    public function getUri() : UriInterface
+    public function getUri(): UriInterface
     {
         return $this->uri;
     }
@@ -191,7 +190,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      *
      * @return  RequestInterface                Instance with the provided URI.
      ************************************************************************/
-    public function withUri(UriInterface $uri, bool $preserveHost = false) : RequestInterface
+    public function withUri(UriInterface $uri, bool $preserveHost = false): RequestInterface
     {
         $newInstance = clone $this;
         $newInstance->uri = $uri;
@@ -221,7 +220,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      *
      * @return  string                          Request target from URI.
      ************************************************************************/
-    protected function getRequestTargetFromUri(UriInterface $uri) : string
+    protected function getRequestTargetFromUri(UriInterface $uri): string
     {
         $path   = $uri->getPath();
         $query  = $uri->getQuery();
@@ -237,7 +236,7 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      *
      * @return  string                          Host from URI.
      ************************************************************************/
-    protected function getHostFromUri(UriInterface $uri) : string
+    protected function getHostFromUri(UriInterface $uri): string
     {
         $host   = $uri->getHost();
         $port   = $uri->getPort();
@@ -254,9 +253,9 @@ abstract class AbstractRequest extends AbstractMessage implements RequestInterfa
      * @return  string                      Validated request target.
      * @throws  InvalidArgumentException    Validating error.
      ************************************************************************/
-    private function validateRequestTarget(string $requestTarget) : string
+    private function validateRequestTarget(string $requestTarget): string
     {
-        if (strlen($requestTarget) <= 0)
+        if (strlen($requestTarget) === 0)
         {
             throw new InvalidArgumentException;
         }

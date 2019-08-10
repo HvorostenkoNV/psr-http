@@ -7,7 +7,7 @@ use AVMG\Http\Exception\NormalizingException;
 /** ***********************************************************************************************
  * HTTP message header class.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 class MessageHeader
@@ -20,7 +20,7 @@ class MessageHeader
      * @return  string                      Normalized header name.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
-    public static function normalizeHeaderName(string $name) : string
+    public static function normalizeHeaderName(string $name): string
     {
         if (!preg_match('/^[a-zA-Z0-9\'`#$%&*+.^_|~!-]+$/', $name))
         {
@@ -37,13 +37,13 @@ class MessageHeader
      * @return  string                      Normalized header value.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
-    public static function normalizeHeaderValue($value) : string
+    public static function normalizeHeaderValue($value): string
     {
         if (!is_string($value) && !is_numeric($value))
         {
             throw new NormalizingException;
         }
-        if (strlen($value) <= 0)
+        if (strlen($value) === 0)
         {
             throw new NormalizingException;
         }

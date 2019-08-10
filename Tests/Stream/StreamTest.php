@@ -3,58 +3,61 @@ declare(strict_types=1);
 
 namespace AVMG\Http\Tests\Stream;
 
-use
-    Throwable,
-    InvalidArgumentException,
-    RuntimeException,
-    PHPUnit\Framework\TestCase,
-    AVMG\Http\Stream\Stream;
+use Throwable;
+use RuntimeException;
+use PHPUnit\Framework\TestCase;
+use AVMG\Http\Tests\Collection\CollectionMediator;
+use AVMG\Http\Stream\Stream;
+
+use function is_file;
+use function is_resource;
+use function rand;
+use function str_repeat;
+use function mb_strlen;
+use function substr;
+use function array_diff;
+use function fopen;
+use function ftell;
+use function fwrite;
+use function fseek;
+use function feof;
+use function fgetc;
+use function rewind;
+use function stream_get_contents;
+use function stream_get_meta_data;
+use function unlink;
+use function sys_get_temp_dir;
+use function tempnam;
+
+use const SEEK_CUR;
+use const SEEK_END;
+use const SEEK_SET;
 /** ***********************************************************************************************
  * PSR-7 StreamInterface implementation test.
  *
- * @package avmg_psr_http_tests
+ * @package AVMG\Http\Tests
  * @author  Hvorostenko
  *************************************************************************************************/
 class StreamTest extends TestCase
 {
-    /** **********************************************************************
-     * Test "Stream::__construct" throws exception with incorrect argument.
-     *
-     * @dataProvider        dataProviderConstructorIncorrectArgument
-     * @expectedException   InvalidArgumentException
-     *
-     * @param               mixed $resource             Incorrect argument.
-     *
-     * @return              void
-     * @throws              Throwable
-     ************************************************************************/
-    public function testConstructorThrowsException($resource) : void
-    {
-        new Stream($resource);
-        $argumentType = gettype($resource);
-
-        self::fail
-        (
-            "Method \"Stream::__construct\" threw no expected exception.\n".
-            "Expects \"InvalidArgumentException\" exception with argument type \"$argumentType\".\n".
-            "Caught no exception.\n"
-        );
-    }
+    private static $temporaryFiles = [];
     /** **********************************************************************
      * Test "Stream::__destruct" closes underlying resource.
      *
-     * @return  void
-     * @throws  Throwable
+     * @dataProvider    dataProviderResourcesReadableAndWritable
+     *
+     * @param           resource $resource              Recourse.
+     *
+     * @return          void
+     * @throws          Throwable
      ************************************************************************/
-    public function testDestructorClosesResource() : void
+    public function testDestructorClosesResource($resource): void
     {
-        $resource   = fopen('php://memory', 'w+');
-        $stream     = new Stream($resource);
+        $stream = new Stream($resource);
 
         unset($stream);
 
-        self::assertFalse
-        (
+        self::assertFalse(
             is_resource($resource),
             "Stream object showed unexpected behavior.\n".
             "Expects underlying stream resource will be closed after stream object will be destroyed\n".
@@ -72,12 +75,11 @@ class StreamTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testToStringConverting($resource, string $content) : void
+    public function testToStringConverting($resource, string $content): void
     {
         $stream = new Stream($resource);
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $content,
             (string) $stream,
             "Stream object converting to string returned unexpected result.\n"
@@ -86,18 +88,20 @@ class StreamTest extends TestCase
     /** **********************************************************************
      * Test "Stream::close" closes underlying resource.
      *
-     * @return  void
-     * @throws  Throwable
+     * @dataProvider    dataProviderResourcesReadableAndWritable
+     *
+     * @param           resource $resource              Recourse.
+     *
+     * @return          void
+     * @throws          Throwable
      ************************************************************************/
-    public function testClose() : void
+    public function testClose($resource): void
     {
-        $resource   = fopen('php://memory', 'w+');
-        $stream     = new Stream($resource);
+        $stream = new Stream($resource);
 
         $stream->close();
 
-        self::assertFalse
-        (
+        self::assertFalse(
             is_resource($resource),
             "Method \"Stream::close\" showed unexpected behavior.\n".
             "Expects underlying stream resource will be closed after calling method \"Stream::close\".\n".
@@ -107,19 +111,21 @@ class StreamTest extends TestCase
     /** **********************************************************************
      * Test "Stream::close" DO NOT closes underlying resource, if stream is detached.
      *
-     * @return  void
-     * @throws  Throwable
+     * @dataProvider    dataProviderResourcesReadableAndWritable
+     *
+     * @param           resource $resource              Recourse.
+     *
+     * @return          void
+     * @throws          Throwable
      ************************************************************************/
-    public function testCloseDoNothingWithDetachedResource() : void
+    public function testCloseDoNothingWithDetachedResource($resource): void
     {
-        $resource           = fopen('php://memory', 'w+');
         $stream             = new Stream($resource);
         $resourceDetached   = $stream->detach();
 
         $stream->close();
 
-        self::assertTrue
-        (
+        self::assertTrue(
             is_resource($resourceDetached),
             "Method \"Stream::close\" showed unexpected behavior.\n".
             "Expects underlying stream resource will be NOT closed after it was detached\n".
@@ -129,16 +135,18 @@ class StreamTest extends TestCase
     /** **********************************************************************
      * Test "Stream::detach" provides recourse.
      *
-     * @return  void
-     * @throws  Throwable
+     * @dataProvider    dataProviderResourcesReadableAndWritable
+     *
+     * @param           resource $resource              Recourse.
+     *
+     * @return          void
+     * @throws          Throwable
      ************************************************************************/
-    public function testDetach() : void
+    public function testDetach($resource): void
     {
-        $resource   = fopen('php://memory', 'w+');
-        $stream     = new Stream($resource);
+        $stream = new Stream($resource);
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $resource,
             $stream->detach(),
             "Method \"Stream::detach\" returned unexpected result.\n".
@@ -157,12 +165,11 @@ class StreamTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testGetSize($resource, $expectedSize) : void
+    public function testGetSize($resource, $expectedSize): void
     {
         $providedSize = (new Stream($resource))->getSize();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $expectedSize,
             $providedSize,
             "Method \"Stream::getSize\" returned unexpected result.\n".
@@ -182,12 +189,11 @@ class StreamTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testTell($resource, int $expectedPosition) : void
+    public function testTell($resource, int $expectedPosition): void
     {
         $providedPosition = (new Stream($resource))->tell();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $expectedPosition,
             $providedPosition,
             "Method \"Stream::tell\" returned unexpected result.\n".
@@ -206,12 +212,11 @@ class StreamTest extends TestCase
      * @return              void
      * @throws              Throwable
      ************************************************************************/
-    public function testTellThrowsException($resource) : void
+    public function testTellThrowsException($resource): void
     {
         (new Stream($resource))->tell();
 
-        self::fail
-        (
+        self::fail(
             "Method \"Stream::tell\" threw no expected exception.\n".
             "Expects \"RuntimeException\" exception with resource cursor pointer in incorrect position.\n".
             "Caught no exception.\n"
@@ -228,12 +233,11 @@ class StreamTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testEof($resource, bool $isInTheEnd) : void
+    public function testEof($resource, bool $isInTheEnd): void
     {
         $providedValue = (new Stream($resource))->eof();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $isInTheEnd,
             $providedValue,
             "Method \"Stream::eof\" returned unexpected result.\n".
@@ -252,12 +256,11 @@ class StreamTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testIsSeekable($resource, bool $isSeekable) : void
+    public function testIsSeekable($resource, bool $isSeekable): void
     {
         $providedValue = (new Stream($resource))->isSeekable();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $isSeekable,
             $providedValue,
             "Method \"Stream::isSeekable\" returned unexpected result.\n".
@@ -278,20 +281,18 @@ class StreamTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testSeek
-    (
+    public function testSeek(
         $resource,
         int $offset,
         int $whence,
         int $expectedPosition
-    ) : void
+    ): void
     {
         $stream = new Stream($resource);
         $stream->seek($offset, $whence);
         $providedPosition = ftell($resource);
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $expectedPosition,
             $providedPosition,
             "Method \"Stream::seek\" showed unexpected behavior.\n".
@@ -313,12 +314,11 @@ class StreamTest extends TestCase
      * @return              void
      * @throws              Throwable
      ************************************************************************/
-    public function testSeekThrowsException($resource, int $offset, int $whence) : void
+    public function testSeekThrowsException($resource, int $offset, int $whence): void
     {
         (new Stream($resource))->seek($offset, $whence);
 
-        self::fail
-        (
+        self::fail(
             "Method \"Stream::seek\" threw no expected exception.\n".
             "Expects \"RuntimeException\" exception with seeking with".
             " offset \"$offset\" and whence value \"$whence\".\n".
@@ -328,20 +328,19 @@ class StreamTest extends TestCase
     /** **********************************************************************
      * Test "Stream::rewind" seeks the stream to the beginning.
      *
-     * @return  void
-     * @throws  Throwable
+     * @dataProvider    dataProviderResourcesWithSeekableState
+     *
+     * @param           resource $resource              Recourse.
+     *
+     * @return          void
+     * @throws          Throwable
      ************************************************************************/
-    public function testRewind() : void
+    public function testRewind($resource): void
     {
-        $resource = fopen('php://memory', 'w+');
-        fwrite($resource, 'some data');
-        fseek($resource, 2);
-
         $stream = new Stream($resource);
         $stream->rewind();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             0,
             ftell($resource),
             "Method \"Stream::rewind\" showed unexpected behavior.\n".
@@ -360,12 +359,11 @@ class StreamTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testIsWritable($resource, bool $isWritable) : void
+    public function testIsWritable($resource, bool $isWritable): void
     {
         $providedValue = (new Stream($resource))->isWritable();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $isWritable,
             $providedValue,
             "Method \"Stream::isWritable\" returned unexpected result.\n".
@@ -386,12 +384,11 @@ class StreamTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testWrite($resource, string $data, int $expectedSize) : void
+    public function testWrite($resource, string $data, int $expectedSize): void
     {
         $providedSize = (new Stream($resource))->write($data);
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $expectedSize,
             $providedSize,
             "Method \"Stream::write\" returned unexpected result.\n".
@@ -411,12 +408,11 @@ class StreamTest extends TestCase
      * @return              void
      * @throws              Throwable
      ************************************************************************/
-    public function testWriteThrowsException($resource, string $data) : void
+    public function testWriteThrowsException($resource, string $data): void
     {
         (new Stream($resource))->write($data);
 
-        self::fail
-        (
+        self::fail(
             "Method \"Stream::write\" threw no expected exception.\n".
             "Expects \"RuntimeException\" exception.\n".
             "Caught no exception.\n"
@@ -428,23 +424,21 @@ class StreamTest extends TestCase
      * @return  void
      * @throws  Throwable
      ************************************************************************/
-    public function testWriteAddData() : void
+    public function testWriteAddData(): void
     {
-        $resource   = fopen('php://memory', 'w');
-        $content1   = $this->generateResourceRandomData();
-        $content2   = $this->generateResourceRandomData();
+        $resource   = $this->getTemporaryResource();
+        $content1   = $this->getRandomText();
+        $content2   = $this->getRandomText();
         $stream     = new Stream($resource);
 
         $stream->write($content1);
         $stream->write($content2);
 
         rewind($resource);
-        $resourceContent = stream_get_contents($resource);
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $content1.$content2,
-            $resourceContent,
+            stream_get_contents($resource),
             "Method \"Stream::write\" showed unexpected behavior.\n".
             "Expects data to write will be added to existed resource content.\n".
             "Caught resource content is not as expected.\n"
@@ -456,20 +450,18 @@ class StreamTest extends TestCase
      * @return  void
      * @throws  Throwable
      ************************************************************************/
-    public function testWriteMovesCursorPosition() : void
+    public function testWriteMovesCursorPosition(): void
     {
-        $resource       = fopen('php://memory', 'w');
-        $content        = $this->generateResourceRandomData();
+        $resource       = $this->getTemporaryResource();
+        $content        = $this->getRandomText();
         $contentSize    = mb_strlen($content);
         $stream         = new Stream($resource);
 
         $stream->write($content);
-        $resourcePointer = ftell($resource);
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $contentSize,
-            $resourcePointer,
+            ftell($resource),
             "Method \"Stream::write\" showed unexpected behavior.\n".
             "Expects underlying resource cursor position will be moved after success.\n".
             "Caught resource cursor position is not as expected.\n"
@@ -486,12 +478,11 @@ class StreamTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testIsReadable($resource, bool $isReadable) : void
+    public function testIsReadable($resource, bool $isReadable): void
     {
         $providedValue = (new Stream($resource))->isReadable();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $isReadable,
             $providedValue,
             "Method \"Stream::isReadable\" returned unexpected result.\n".
@@ -511,12 +502,11 @@ class StreamTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testRead($resource, int $length, string $expectedData) : void
+    public function testRead($resource, int $length, string $expectedData): void
     {
         $providedData = (new Stream($resource))->read($length);
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $expectedData,
             $providedData,
             "Method \"Stream::read\" returned unexpected result.\n".
@@ -536,12 +526,11 @@ class StreamTest extends TestCase
      * @return              void
      * @throws              Throwable
      ************************************************************************/
-    public function testReadThrowsException($resource, int $length) : void
+    public function testReadThrowsException($resource, int $length): void
     {
         (new Stream($resource))->read($length);
 
-        self::fail
-        (
+        self::fail(
             "Method \"Stream::read\" threw no expected exception.\n".
             "Expects \"RuntimeException\" exception.\n".
             "Caught no exception.\n"
@@ -558,12 +547,11 @@ class StreamTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testGetContents($resource, string $expectedContent) : void
+    public function testGetContents($resource, string $expectedContent): void
     {
         $providedContent = (new Stream($resource))->getContents();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $expectedContent,
             $providedContent,
             "Method \"Stream::getContents\" returned unexpected result.\n".
@@ -582,154 +570,117 @@ class StreamTest extends TestCase
      * @return              void
      * @throws              Throwable
      ************************************************************************/
-    public function testGetContentsThrowsException($resource) : void
+    public function testGetContentsThrowsException($resource): void
     {
         (new Stream($resource))->getContents();
 
-        self::fail
-        (
+        self::fail(
             "Method \"Stream::getContents\" threw no expected exception.\n".
             "Expects \"RuntimeException\" exception.\n".
             "Caught no exception.\n"
         );
     }
     /** **********************************************************************
-     * Test "Stream::getMetadata" provides stream metadata as an associative array.
-     *
-     * @dataProvider    dataProviderResourcesWithContentValidValues
-     *
-     * @param           resource    $resource           Resource.
-     * @param           string      $expectedContent    Expected content.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
-    public function testGetMetadata($resource, string $expectedContent) : void
-    {
-        $providedContent = (new Stream($resource))->getContents();
-
-        self::assertEquals
-        (
-            $expectedContent,
-            $providedContent,
-            "Method \"Stream::getContents\" returned unexpected result.\n".
-            "Expected result is \"$expectedContent\".\n".
-            "Caught result is \"$providedContent\".\n"
-        );
-    }
-    /** **********************************************************************
-     * Test Stream object behavior in an unusable state.
+     * Test "Stream::getContents" change stream current seek position.
      *
      * @return  void
      * @throws  Throwable
      ************************************************************************/
-    public function testStreamInUnusableState() : void
+    public function testGetContentsChangeSeekPosition(): void
     {
-        foreach (['close', 'detach'] as $closeMethod)
-        {
-            $resource = fopen('php://memory', 'w+');
-            fwrite($resource, 'data-data');
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
+        $stream     = new Stream($resource);
 
-            $stream = new Stream($resource);
-            $stream->$closeMethod();
+        $stream->write($content);
 
-            self::assertEquals
-            (
-                '',
-                (string) $stream,
-                "Method \"Stream::__toString\" returned unexpected result.\n".
-                "Expects get empty string from stream in an unusable state\n".
-                "Caught result is not empty string.\n"
-            );
-
-            foreach (['detach', 'getSize'] as $method)
-            {
-                self::assertNull
-                (
-                    $stream->$method(),
-                    "Method \"Stream::$method\" returned unexpected result.\n".
-                    "Expects get null from stream in an unusable state\n".
-                    "Caught result is not null.\n"
-                );
-            }
-
-            self::assertTrue
-            (
-                $stream->eof(),
-                "Method \"Stream::eof\" returned unexpected result.\n".
-                "Expects get true from stream in an unusable state\n".
-                "Caught result is not true.\n"
-            );
-
-            foreach (['isSeekable', 'isWritable', 'isReadable'] as $method)
-            {
-                self::assertFalse
-                (
-                    $stream->$method(),
-                    "Method \"Stream::$method\" returned unexpected result.\n".
-                    "Expects get false from stream in an unusable state\n".
-                    "Caught result is not true.\n"
-                );
-            }
-
-            foreach
-            (
-                [
-                    'tell'          => [],
-                    'seek'          => [0],
-                    'rewind'        => [],
-                    'write'         => ['data'],
-                    'read'          => [1],
-                    'getContents'   => [],
-                ]
-                as $method => $arguments
-            )
-            {
-                try
-                {
-                    call_user_func_array([$stream, $method], $arguments);
-                    self::fail
-                    (
-                        "Method \"Stream::$method\" threw no expected exception.\n".
-                        "Expects \"RuntimeException\" exception from stream in an unusable state.\n".
-                        "Caught no exception.\n"
-                    );
-                }
-                catch (RuntimeException $exception)
-                {
-
-                }
-            }
-        }
+        $stream->rewind();
+        self::assertEquals(
+            $content,
+            $stream->getContents(),
+            "Method \"Stream::getContents\" returned unexpected result.\n".
+            "Expects get set content after the stream was rewind.\n".
+            "Caught result is not the same.\n"
+        );
+        self::assertEquals(
+            '',
+            $stream->getContents(),
+            "Method \"Stream::getContents\" returned unexpected result.\n".
+            "Expects get empty string after calling method twice.\n".
+            "Caught result is not empty string.\n"
+        );
+        $stream->rewind();
+        self::assertEquals(
+            $content,
+            $stream->getContents(),
+            "Method \"Stream::getContents\" returned unexpected result.\n".
+            "Expects get set content after the stream was rewind.\n".
+            "Caught result is not the same.\n"
+        );
     }
     /** **********************************************************************
-     * Data provider: incorrect arguments for stream constructor.
+     * Test "Stream::getMetadata" provides stream metadata as an associative array.
+     *
+     * @dataProvider    dataProviderResourcesWithMetadata
+     *
+     * @param           resource    $resource           Resource.
+     * @param           array       $expectedData       Expected metadata.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function testGetMetadata($resource, array $expectedData): void
+    {
+        $providedData = (new Stream($resource))->getMetadata();
+
+        self::assertEquals(
+            $expectedData,
+            $providedData,
+            "Method \"Stream::getMetadata\" returned unexpected result.\n"
+        );
+    }
+    /** **********************************************************************
+     * Test "Stream::getMetadata" provides metadata value by specific key.
+     *
+     * @dataProvider    dataProviderResourcesWithMetadataByKey
+     *
+     * @param           resource    $resource           Resource.
+     * @param           string      $key                Specific key.
+     * @param           mixed       $expectedValue      Expected metadata value.
+     *
+     * @return          void
+     * @throws          Throwable
+     ************************************************************************/
+    public function testGetMetadataByKey($resource, string $key, $expectedValue): void
+    {
+        $providedValue = (new Stream($resource))->getMetadata($key);
+
+        self::assertEquals(
+            $expectedValue,
+            $providedValue,
+            "Method \"Stream::getMetadata\" returned unexpected result.\n".
+            "Expected result by key \"$key\" is \"$expectedValue\".\n".
+            "Caught result is \"$providedValue\".\n"
+        );
+    }
+    /** **********************************************************************
+     * Data provider: resources, readable and writable.
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderConstructorIncorrectArgument() : array
+    public function dataProviderResourcesReadableAndWritable(): array
     {
-        $result =
-            [
-                ['someString'],
-                [''],
-                [10],
-                [0],
-                [-10],
-                [0.5],
-                [0.0],
-                [-0.5],
-                [true],
-                [false],
-                [['value', 'value', 'value']],
-                [[]],
-                [new InvalidArgumentException],
-                [null]
-            ];
+        $modeReadableAndWritable    = array_diff(
+            CollectionMediator::get('resource.accessMode.readableAndWritable'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $result                     = [];
 
-        $resource = fopen('php://memory', 'w+');
-        fclose($resource);
-        $result[] = [$resource];
+        foreach ($modeReadableAndWritable as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource];
+        }
 
         return $result;
     }
@@ -738,30 +689,38 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithData() : array
+    public function dataProviderResourcesWithData(): array
     {
-        $resourcesReadableOnly          = $this->getResourcesReadableOnlySet();
-        $resourcesWritableOnly          = $this->getResourcesWritableOnlySet();
-        $resourcesReadableAndWritable   = $this->getResourcesReadableAndWritableSet();
-        $result                         = [];
+        $modeReadableOnly           = array_diff(
+            CollectionMediator::get('resource.accessMode.readableOnly'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $modeWritableOnly           = array_diff(
+            CollectionMediator::get('resource.accessMode.writableOnly'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $modeReadableAndWritable    = array_diff(
+            CollectionMediator::get('resource.accessMode.readableAndWritable'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $result                     = [];
 
-        $resource   = fopen(__FILE__, 'r');
-        $content    = file_get_contents(__FILE__);
-        $result[]   = [$resource, $content];
-
-        foreach ($resourcesReadableOnly as $resource)
-        {
-            $result[] = [$resource, ''];
+        foreach ($modeReadableOnly as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource, ''];
         }
-        foreach ($resourcesWritableOnly as $resource)
-        {
-            $content    = $this->generateResourceRandomData();
+        foreach ($modeWritableOnly as $mode) {
+            $file       = $this->getTemporaryFile();
+            $content    = $this->getRandomText();
+            $resource   = fopen($file, $mode);
             fwrite($resource, $content);
             $result[]   = [$resource, ''];
         }
-        foreach ($resourcesReadableAndWritable as $resource)
-        {
-            $content    = $this->generateResourceRandomData();
+        foreach ($modeReadableAndWritable as $mode) {
+            $file       = $this->getTemporaryFile();
+            $content    = $this->getRandomText();
+            $resource   = fopen($file, $mode);
             fwrite($resource, $content);
             $result[]   = [$resource, $content];
         }
@@ -773,29 +732,38 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithDataSize() : array
+    public function dataProviderResourcesWithDataSize(): array
     {
-        $resourcesReadableOnly          = $this->getResourcesReadableOnlySet();
-        $resourcesWritableOnly          = $this->getResourcesWritableOnlySet();
-        $resourcesReadableAndWritable   = $this->getResourcesReadableAndWritableSet();
-        $result                         = [];
+        $modeReadableOnly           = array_diff(
+            CollectionMediator::get('resource.accessMode.readableOnly'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $modeWritableOnly           = array_diff(
+            CollectionMediator::get('resource.accessMode.writableOnly'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $modeReadableAndWritable    = array_diff(
+            CollectionMediator::get('resource.accessMode.readableAndWritable'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $result                     = [];
 
-        $resource   = fopen(__FILE__, 'r');
-        $result[]   = [$resource, filesize(__FILE__)];
-
-        foreach ($resourcesReadableOnly as $resource)
-        {
-            $result[] = [$resource, 0];
+        foreach ($modeReadableOnly as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource, 0];
         }
-        foreach ($resourcesWritableOnly as $resource)
-        {
-            $content    = $this->generateResourceRandomData();
+        foreach ($modeWritableOnly as $mode) {
+            $file       = $this->getTemporaryFile();
+            $content    = $this->getRandomText();
+            $resource   = fopen($file, $mode);
             fwrite($resource, $content);
-            $result[]   = [$resource, null];
+            $result[]   = [$resource, mb_strlen($content)];
         }
-        foreach ($resourcesReadableAndWritable as $resource)
-        {
-            $content    = $this->generateResourceRandomData();
+        foreach ($modeReadableAndWritable as $mode) {
+            $file       = $this->getTemporaryFile();
+            $content    = $this->getRandomText();
+            $resource   = fopen($file, $mode);
             fwrite($resource, $content);
             $result[]   = [$resource, mb_strlen($content)];
         }
@@ -807,28 +775,20 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithPointerValidValues() : array
+    public function dataProviderResourcesWithPointerValidValues(): array
     {
-        $resourcesWritableOnly  = $this->getResourcesWritableOnlySet();
-        $result                 = [];
+        $result     = [];
 
-        foreach ($resourcesWritableOnly as $resource)
-        {
-            $content    = $this->generateResourceRandomData();
-            fwrite($resource, $content);
-            $result[]   = [$resource, 0];
-        }
-
-        $resource   = fopen('php://memory', 'r');
+        $resource   = $this->getTemporaryResource();
         $result[]   = [$resource, 0];
 
-        $resource   = fopen('php://memory', 'w+');
-        $content    = $this->generateResourceRandomData();
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
         fwrite($resource, $content);
         $result[]   = [$resource, mb_strlen($content)];
 
-        $resource   = fopen('php://memory', 'w+');
-        $content    = $this->generateResourceRandomData();
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
         $seekValue  = (int) (mb_strlen($content) / 2);
         fwrite($resource, $content);
         fseek($resource, $seekValue);
@@ -841,18 +801,18 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithPointerInvalidValues() : array
+    public function dataProviderResourcesWithPointerInvalidValues(): array
     {
-        $result = [];
+        $result     = [];
 
-        $resource   = fopen('php://memory', 'w+');
-        $content    = $this->generateResourceRandomData();
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
         fwrite($resource, $content);
         fseek($resource, -1);
         $result[]   = [$resource];
 
-        $resource   = fopen('php://memory', 'w+');
-        $content    = $this->generateResourceRandomData();
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
         fwrite($resource, $content);
         fseek($resource, 1, SEEK_END);
         $result[]   = [$resource];
@@ -864,21 +824,22 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithPointerInTheEnd() : array
+    public function dataProviderResourcesWithPointerInTheEnd(): array
     {
-        $result = [];
+        $result     = [];
 
-        $resource   = fopen('php://memory', 'w+');
+        $resource   = $this->getTemporaryResource();
         $result[]   = [$resource, false];
 
-        $resource   = fopen('php://memory', 'w+');
-        fwrite($resource, $this->generateResourceRandomData());
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
+        fwrite($resource, $content);
         $result[]   = [$resource, false];
 
-        $resource   = fopen('php://memory', 'w+');
-        fwrite($resource, $this->generateResourceRandomData());
-        while (!feof($resource))
-        {
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
+        fwrite($resource, $content);
+        while (!feof($resource)) {
             fgetc($resource);
         }
         $result[]   = [$resource, true];
@@ -890,24 +851,18 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithSeekableState() : array
+    public function dataProviderResourcesWithSeekableState(): array
     {
-        $resourcesReadableOnly          = $this->getResourcesReadableOnlySet();
-        $resourcesWritableOnly          = $this->getResourcesWritableOnlySet();
-        $resourcesReadableAndWritable   = $this->getResourcesReadableAndWritableSet();
-        $result                         = [];
+        $modeValues = array_diff(
+            CollectionMediator::get('resource.accessMode.all'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $result     = [];
 
-        foreach ($resourcesReadableOnly as $resource)
-        {
-            $result[] = [$resource, true];
-        }
-        foreach ($resourcesWritableOnly as $resource)
-        {
-            $result[] = [$resource, false];
-        }
-        foreach ($resourcesReadableAndWritable as $resource)
-        {
-            $result[] = [$resource, true];
+        foreach ($modeValues as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource, true];
         }
 
         return $result;
@@ -917,33 +872,34 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithSeekValidParams() : array
+    public function dataProviderResourcesWithSeekValidParams(): array
     {
-        $result = [];
+        $result             = [];
 
-        $resource   = fopen('php://memory', 'w+');
-        $result[]   = [$resource, 0, SEEK_SET, 0];
+        $resource           = $this->getTemporaryResource();
+        $result[]           = [$resource, 0, SEEK_SET, 0];
 
-        $resource   = fopen('php://memory', 'w+');
-        $content    = $this->generateResourceRandomData();
-        $seekValue  = (int) (mb_strlen($content) / 2);
+        $resource           = $this->getTemporaryResource();
+        $content            = $this->getRandomText();
+        $seekValue          = (int) (mb_strlen($content) / 2);
         fwrite($resource, $content);
-        $result[]   = [$resource, $seekValue, SEEK_SET, $seekValue];
+        $result[]           = [$resource, $seekValue, SEEK_SET, $seekValue];
 
-        $resource           = fopen('php://memory', 'w+');
+        $resource           = $this->getTemporaryResource();
+        $content            = $this->getRandomText();
         $seekValueFirst     = 10;
         $seekValueSecond    = 5;
         $seekValueTotal     = $seekValueFirst + $seekValueSecond;
-        fwrite($resource, $this->generateResourceRandomData());
+        fwrite($resource, $content);
         fseek($resource, $seekValueFirst);
         $result[]           = [$resource, $seekValueSecond, SEEK_CUR, $seekValueTotal];
 
-        $resource       = fopen('php://memory', 'w+');
-        $content        = $this->generateResourceRandomData();
-        $seekValue      = -10;
-        $seekValueTotal = mb_strlen($content) + $seekValue;
+        $resource           = $this->getTemporaryResource();
+        $content            = $this->getRandomText();
+        $seekValue          = -10;
+        $seekValueTotal     = mb_strlen($content) + $seekValue;
         fwrite($resource, $content);
-        $result[]       = [$resource, $seekValue, SEEK_END, $seekValueTotal];
+        $result[]           = [$resource, $seekValue, SEEK_END, $seekValueTotal];
 
         return $result;
     }
@@ -952,35 +908,36 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithSeekInvalidParams() : array
+    public function dataProviderResourcesWithSeekInvalidParams(): array
     {
-        $result = [];
+        $result     = [];
 
-        $resource   = fopen('php://memory', 'w+');
+        $resource   = $this->getTemporaryResource();
         $result[]   = [$resource, 1, SEEK_SET];
 
-        $resource   = fopen('php://memory', 'w+');
+        $resource   = $this->getTemporaryResource();
         $result[]   = [$resource, -1, SEEK_SET];
 
-        $resource   = fopen('php://memory', 'w+');
-        $content    = $this->generateResourceRandomData();
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
         fwrite($resource, $content);
         $result[]   = [$resource, mb_strlen($content) + 1, SEEK_SET];
 
-        $resource   = fopen('php://memory', 'w+');
-        $content    = $this->generateResourceRandomData();
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
         fwrite($resource, $content);
         fseek($resource, mb_strlen($content));
         $result[]   = [$resource, 1, SEEK_CUR];
 
-        $resource   = fopen('php://memory', 'w+');
-        fwrite($resource, $this->generateResourceRandomData());
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
+        fwrite($resource, $content);
         $result[]   = [$resource, 1, SEEK_END];
 
-        $resource   = fopen('php://memory', 'w+');
+        $resource   = $this->getTemporaryResource();
         $result[]   = [$resource, 0, 3];
 
-        $resource   = fopen('php://memory', 'w+');
+        $resource   = $this->getTemporaryResource();
         $result[]   = [$resource, 0, -1];
 
         return $result;
@@ -990,24 +947,36 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithWritableState() : array
+    public function dataProviderResourcesWithWritableState(): array
     {
-        $resourcesReadableOnly          = $this->getResourcesReadableOnlySet();
-        $resourcesWritableOnly          = $this->getResourcesWritableOnlySet();
-        $resourcesReadableAndWritable   = $this->getResourcesReadableAndWritableSet();
-        $result                         = [];
+        $modeReadableOnly           = array_diff(
+            CollectionMediator::get('resource.accessMode.readableOnly'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $modeWritableOnly           = array_diff(
+            CollectionMediator::get('resource.accessMode.writableOnly'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $modeReadableAndWritable    = array_diff(
+            CollectionMediator::get('resource.accessMode.readableAndWritable'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $result                     = [];
 
-        foreach ($resourcesReadableOnly as $resource)
-        {
-            $result[] = [$resource, false];
+        foreach ($modeReadableOnly as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource, false];
         }
-        foreach ($resourcesWritableOnly as $resource)
-        {
-            $result[] = [$resource, true];
+        foreach ($modeWritableOnly as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource, true];
         }
-        foreach ($resourcesReadableAndWritable as $resource)
-        {
-            $result[] = [$resource, true];
+        foreach ($modeReadableAndWritable as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource, true];
         }
 
         return $result;
@@ -1017,19 +986,19 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithDataToWriteValidValues() : array
+    public function dataProviderResourcesWithDataToWriteValidValues(): array
     {
-        $result = [];
+        $result     = [];
 
-        $resource   = fopen('php://memory', 'w');
+        $resource   = $this->getTemporaryResource();
         $result[]   = [$resource, '', 0];
 
-        $resource   = fopen('php://memory', 'w+');
-        $content    = $this->generateResourceRandomData();
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
         $result[]   = [$resource, $content, mb_strlen($content)];
 
-        $resource   = fopen('php://memory', 'w+');
-        $content    = $this->generateResourceRandomData();
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
         fwrite($resource, 'someData');
         $result[]   = [$resource, $content, mb_strlen($content)];
 
@@ -1040,14 +1009,19 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithDataToWriteInvalidValues() : array
+    public function dataProviderResourcesWithDataToWriteInvalidValues(): array
     {
-        $resourcesReadableOnly  = $this->getResourcesReadableOnlySet();
-        $result                 = [];
+        $modeReadableOnly   = array_diff(
+            CollectionMediator::get('resource.accessMode.readableOnly'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $result             = [];
 
-        foreach ($resourcesReadableOnly as $resource)
-        {
-            $result[] = [$resource, $this->generateResourceRandomData()];
+        foreach ($modeReadableOnly as $mode) {
+            $file       = $this->getTemporaryFile();
+            $content    = $this->getRandomText();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource, $content];
         }
 
         return $result;
@@ -1057,24 +1031,36 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithReadableState() : array
+    public function dataProviderResourcesWithReadableState(): array
     {
-        $resourcesReadableOnly          = $this->getResourcesReadableOnlySet();
-        $resourcesWritableOnly          = $this->getResourcesWritableOnlySet();
-        $resourcesReadableAndWritable   = $this->getResourcesReadableAndWritableSet();
-        $result                         = [];
+        $modeReadableOnly           = array_diff(
+            CollectionMediator::get('resource.accessMode.readableOnly'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $modeWritableOnly           = array_diff(
+            CollectionMediator::get('resource.accessMode.writableOnly'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $modeReadableAndWritable    = array_diff(
+            CollectionMediator::get('resource.accessMode.readableAndWritable'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $result                     = [];
 
-        foreach ($resourcesReadableOnly as $resource)
-        {
-            $result[] = [$resource, true];
+        foreach ($modeReadableOnly as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource, true];
         }
-        foreach ($resourcesWritableOnly as $resource)
-        {
-            $result[] = [$resource, false];
+        foreach ($modeWritableOnly as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource, false];
         }
-        foreach ($resourcesReadableAndWritable as $resource)
-        {
-            $result[] = [$resource, true];
+        foreach ($modeReadableAndWritable as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource, true];
         }
 
         return $result;
@@ -1084,35 +1070,34 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithDataToReadValidValues() : array
+    public function dataProviderResourcesWithDataToReadValidValues(): array
     {
-        $result = [];
+        $result             = [];
 
-        $resource   = fopen('php://memory', 'w+');
-        $result[]   = [$resource, 0, ''];
+        $resource           = $this->getTemporaryResource();
+        $result[]           = [$resource, 0, ''];
 
-        $resource   = fopen('php://memory', 'w+');
-        $content    = $this->generateResourceRandomData();
+        $resource           = $this->getTemporaryResource();
+        $content            = $this->getRandomText();
         fwrite($resource, $content);
         rewind($resource);
-        $result[]   = [$resource, mb_strlen($content), $content];
+        $result[]           = [$resource, mb_strlen($content), $content];
 
-        $resource           = fopen('php://memory', 'w+');
-        $content            = $this->generateResourceRandomData();
+        $resource           = $this->getTemporaryResource();
+        $content            = $this->getRandomText();
         $readLength         = (int) (mb_strlen($content) / 2);
         $expectedContent    = substr($content, 0, $readLength);
         fwrite($resource, $content);
         rewind($resource);
         $result[]           = [$resource, $readLength, $expectedContent];
 
-        $resource   = fopen('php://memory', 'w+');
-        $content    = $this->generateResourceRandomData();
+        $resource           = $this->getTemporaryResource();
+        $content            = $this->getRandomText();
         fwrite($resource, $content);
-        while (!feof($resource))
-        {
+        while (!feof($resource)) {
             fgetc($resource);
         }
-        $result[]   = [$resource, mb_strlen($content), ''];
+        $result[]           = [$resource, mb_strlen($content), ''];
 
         return $result;
     }
@@ -1121,17 +1106,21 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithDataToReadInvalidValues() : array
+    public function dataProviderResourcesWithDataToReadInvalidValues(): array
     {
-        $resourcesWritableOnly  = $this->getResourcesWritableOnlySet();
-        $result                 = [];
+        $modeWritableOnly   = array_diff(
+            CollectionMediator::get('resource.accessMode.writableOnly'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $result             = [];
 
-        foreach ($resourcesWritableOnly as $resource)
-        {
+        foreach ($modeWritableOnly as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
             $result[]   = [$resource, 1];
         }
 
-        $resource   = fopen('php://memory', 'w+');
+        $resource   = $this->getTemporaryResource();
         $result[]   = [$resource, -1];
 
         return $result;
@@ -1141,29 +1130,26 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithContentValidValues() : array
+    public function dataProviderResourcesWithContentValidValues(): array
     {
-        $result = [];
+        $result             = [];
 
-        $resource   = fopen(__FILE__, 'r');
-        $content    = file_get_contents(__FILE__);
-        $result[]   = [$resource, $content];
+        $resource           = $this->getTemporaryResource();
+        $result[]           = [$resource, ''];
 
-        $resource   = fopen('php://memory', 'w+');
-        $result[]   = [$resource, ''];
+        $resource           = $this->getTemporaryResource();
+        $content            = $this->getRandomText();
+        fwrite($resource, $content);
+        $result[]           = [$resource, ''];
 
-        $resource   = fopen('php://memory', 'w+');
-        fwrite($resource, $this->generateResourceRandomData());
-        $result[]   = [$resource, ''];
-
-        $resource   = fopen('php://memory', 'w+');
-        $content    = $this->generateResourceRandomData();
+        $resource           = $this->getTemporaryResource();
+        $content            = $this->getRandomText();
         fwrite($resource, $content);
         rewind($resource);
-        $result[]   = [$resource, $content];
+        $result[]           = [$resource, $content];
 
-        $resource           = fopen('php://memory', 'w+');
-        $content            = $this->generateResourceRandomData();
+        $resource           = $this->getTemporaryResource();
+        $content            = $this->getRandomText();
         $seekValue          = (int) (mb_strlen($content) / 2);
         $contentExpected    = substr($content, $seekValue);
         fwrite($resource, $content);
@@ -1177,63 +1163,145 @@ class StreamTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithContentInvalidValues() : array
+    public function dataProviderResourcesWithContentInvalidValues(): array
     {
-        $resourcesWritableOnly  = $this->getResourcesWritableOnlySet();
-        $result                 = [];
+        $modeWritableOnly   = array_diff(
+            CollectionMediator::get('resource.accessMode.writableOnly'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $result             = [];
 
-        foreach ($resourcesWritableOnly as $resource)
-        {
-            $result[] = [$resource];
+        foreach ($modeWritableOnly as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource];
         }
 
         return $result;
     }
     /** **********************************************************************
-     * Get resources readable only set.
+     * Data provider: resources with metadata.
      *
-     * @return  resource[]                              Resources.
+     * @return  array                                   Data.
      ************************************************************************/
-    private function getResourcesReadableOnlySet() : array
+    public function dataProviderResourcesWithMetadata(): array
     {
-        return
-            [
-                fopen('php://memory', 'r'),
-                fopen('php://input', 'w+')
-            ];
+        $modeValues = array_diff(
+            CollectionMediator::get('resource.accessMode.all'),
+            CollectionMediator::get('resource.accessMode.nonSuitable')
+        );
+        $result     = [];
+
+        foreach ($modeValues as $mode) {
+            $file       = $this->getTemporaryFile();
+            $resource   = fopen($file, $mode);
+            $result[]   = [$resource, stream_get_meta_data($resource)];
+        }
+
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
+        fwrite($resource, $content);
+        $result[]   = [$resource, stream_get_meta_data($resource)];
+
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
+        fwrite($resource, $content);
+        rewind($resource);
+        $result[]   = [$resource, stream_get_meta_data($resource)];
+
+        $resource   = $this->getTemporaryResource();
+        $content    = $this->getRandomText();
+        fwrite($resource, $content);
+        fseek($resource, (int) (mb_strlen($content) / 2));
+        $result[]   = [$resource, stream_get_meta_data($resource)];
+
+        return $result;
     }
     /** **********************************************************************
-     * Get resources writable only set.
+     * Data provider: resources with metadata by key.
      *
-     * @return  resource[]                              Resources.
+     * @return  array                                   Data.
      ************************************************************************/
-    private function getResourcesWritableOnlySet() : array
+    public function dataProviderResourcesWithMetadataByKey(): array
     {
-        return
-            [
-                fopen('php://output', 'w+')
-            ];
+        $availableKeys      = [
+            'timed_out',    'blocked',
+            'eof',          'unread_bytes',
+            'stream_type',  'wrapper_type',
+            'wrapper_data', 'mode',
+            'seekable',     'uri'
+        ];
+        $unavailableKeys    = ['someKey1', 'someKey2', 'someKey3'];
+        $result             = [];
+
+        foreach ($availableKeys as $key) {
+            $resourcesWithMetadata = $this->dataProviderResourcesWithMetadata();
+            foreach ($resourcesWithMetadata as $resourceWithMetadata) {
+                $result[] = [
+                    $resourceWithMetadata[0],
+                    $key,
+                    $resourceWithMetadata[1][$key] ?? null
+                ];
+            }
+        }
+        foreach ($unavailableKeys as $key) {
+            $resourcesWithMetadata = $this->dataProviderResourcesWithMetadata();
+            foreach ($resourcesWithMetadata as $resourceWithMetadata) {
+                $result[] = [
+                    $resourceWithMetadata[0],
+                    $key,
+                    null
+                ];
+            }
+        }
+
+        return $result;
     }
     /** **********************************************************************
-     * Get resources readable and writable set.
+     * Get random text.
      *
-     * @return  resource[]                              Resources.
+     * @return  string                                  Random text.
      ************************************************************************/
-    private function getResourcesReadableAndWritableSet() : array
-    {
-        return
-            [
-                fopen('php://memory', 'r+'),
-                fopen('php://memory', 'w+')
-            ];
-    }
-    /** **********************************************************************
-     * Generate resource random content data.
-     *
-     * @return  string                                  Data.
-     ************************************************************************/
-    private function generateResourceRandomData() : string
+    private function getRandomText(): string
     {
         return str_repeat("data-data\n", rand(5, 15));
+    }
+    /** **********************************************************************
+     * Get temporary resource.
+     *
+     * @return  resource                                Temporary resource.
+     ************************************************************************/
+    private function getTemporaryResource()
+    {
+        return fopen('php://memory', 'r+');
+    }
+    /** **********************************************************************
+     * Get temporary file path.
+     *
+     * @return  string                                  File path.
+     ************************************************************************/
+    private function getTemporaryFile(): string
+    {
+        $temporaryDirectory = sys_get_temp_dir();
+        $temporaryFile      = tempnam($temporaryDirectory, 'unitTests');
+
+        self::$temporaryFiles[] = $temporaryFile;
+        return $temporaryFile;
+    }
+    /** **********************************************************************
+     * After all test operations.
+     *
+     * @return  void
+     * @throws  Throwable
+     ************************************************************************/
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        foreach (self::$temporaryFiles as $filePath) {
+            if (is_file($filePath)) {
+                unlink($filePath);
+            }
+        }
     }
 }

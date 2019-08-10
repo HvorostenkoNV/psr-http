@@ -23,7 +23,7 @@ use InvalidArgumentException;
  * be implemented such that they retain the internal state of the current
  * message and return an instance that contains the changed state.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface RequestInterface extends MessageInterface
@@ -44,7 +44,7 @@ interface RequestInterface extends MessageInterface
      *
      * @return string                           Request target.
      ************************************************************************/
-    public function getRequestTarget() : string;
+    public function getRequestTarget(): string;
     /** **********************************************************************
      * Return an instance with the specific request-target.
      *
@@ -63,13 +63,13 @@ interface RequestInterface extends MessageInterface
      *
      * @return  RequestInterface                Instance with the specific request-target.
      ************************************************************************/
-    public function withRequestTarget(string $requestTarget) : RequestInterface;
+    public function withRequestTarget(string $requestTarget): RequestInterface;
     /** **********************************************************************
      * Retrieves the HTTP method of the request.
      *
      * @return string                           Request method.
      ************************************************************************/
-    public function getMethod() : string;
+    public function getMethod(): string;
     /** **********************************************************************
      * Return an instance with the provided HTTP method.
      *
@@ -86,7 +86,7 @@ interface RequestInterface extends MessageInterface
      * @return  RequestInterface                Instance with the provided HTTP method.
      * @throws  InvalidArgumentException        Invalid HTTP methods.
      ************************************************************************/
-    public function withMethod(string $method) : RequestInterface;
+    public function withMethod(string $method): RequestInterface;
     /** **********************************************************************
      * Retrieves the URI instance.
      *
@@ -96,7 +96,7 @@ interface RequestInterface extends MessageInterface
      *
      * @return  UriInterface                    URI of the request.
      ************************************************************************/
-    public function getUri() : UriInterface;
+    public function getUri(): UriInterface;
     /** **********************************************************************
      * Returns an instance with the provided URI.
      *
@@ -129,5 +129,5 @@ interface RequestInterface extends MessageInterface
      *
      * @return  RequestInterface                Instance with the provided URI.
      ************************************************************************/
-    public function withUri(UriInterface $uri, bool $preserveHost = false) : RequestInterface;
+    public function withUri(UriInterface $uri, bool $preserveHost = false): RequestInterface;
 }

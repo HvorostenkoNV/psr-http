@@ -3,40 +3,41 @@ declare(strict_types=1);
 
 namespace AVMG\Http\Factory;
 
-use
-    RuntimeException,
-    InvalidArgumentException,
-    Psr\Http\Message\UriInterface,
-    Psr\Http\Message\UriFactoryInterface,
-    AVMG\Http\Uri\Uri;
+use RuntimeException;
+use InvalidArgumentException;
+use Psr\Http\Message\{
+    UriInterface,
+    UriFactoryInterface
+};
+use AVMG\Http\Uri\Uri;
+
+use function strlen;
+use function strpos;
+use function substr;
+use function strripos;
+use function explode;
+use function is_numeric;
 /** ***********************************************************************************************
  * PSR-7 UriFactoryInterface implementation.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 class UriFactory implements UriFactoryInterface
 {
     /** **********************************************************************
-     * Create a new URI.
-     *
-     * @param   string $uri                 The URI to parse.
-     *
-     * @return  UriInterface                URI.
-     * @throws  InvalidArgumentException    Given URI cannot be parsed.
+     * @inheritDoc
      ************************************************************************/
-    public function createUri(string $uri = '') : UriInterface
+    public function createUri(string $uri = ''): UriInterface
     {
-        if ($uri === '')
-        {
-            return new Uri;
+        if ($uri === '') {
+            return new Uri();
         }
 
-        try
-        {
+        try {
             $uriParsedData = $this->parseUriString($uri);
 
-            return (new Uri)
+            return (new Uri())
                 ->withScheme($uriParsedData['scheme'])
                 ->withUserInfo($uriParsedData['user'], $uriParsedData['pass'])
                 ->withHost($uriParsedData['host'])
@@ -44,19 +45,10 @@ class UriFactory implements UriFactoryInterface
                 ->withPath($uriParsedData['path'])
                 ->withQuery($uriParsedData['query'])
                 ->withFragment($uriParsedData['fragment']);
-        }
-        catch (RuntimeException $exception)
-        {
-            throw new InvalidArgumentException("uri \"$uri\" cannot be parsed");
-        }
-        catch (InvalidArgumentException $exception)
-        {
-            throw new InvalidArgumentException
-            (
-                "Uri building error: {$exception->getMessage()}",
-                0,
-                $exception
-            );
+        } catch (RuntimeException $exception) {
+            throw new InvalidArgumentException("uri \"$uri\" cannot be parsed", 0, $exception);
+        } catch (InvalidArgumentException $exception) {
+            throw new InvalidArgumentException("uri \"$uri\" building error", 0, $exception);
         }
     }
     /** **********************************************************************
@@ -67,7 +59,7 @@ class UriFactory implements UriFactoryInterface
      * @return  array                       URI data.
      * @throws  RuntimeException            Parsing error.
      ************************************************************************/
-    private function parseUriString(string $uri) : array
+    private function parseUriString(string $uri): array
     {
         $scheme     = $this->parseSchemeFromUri($uri);
         $fragment   = $this->parseFragmentFromUri($uri);
@@ -78,22 +70,20 @@ class UriFactory implements UriFactoryInterface
         $port       = $this->parsePortFromAuthority($authority);
         $host       = $authority;
 
-        if (strlen($scheme) <= 0 && strlen($host) <= 0 && strlen($path) <= 0)
-        {
-            throw new RuntimeException;
+        if (strlen($scheme) === 0 && strlen($host) === 0 && strlen($path) === 0) {
+            throw new RuntimeException("uri \"$uri\" has no scheme, no host and no path");
         }
 
-        return
-            [
-                'scheme'    => $scheme,
-                'user'      => $userData['login'],
-                'pass'      => $userData['password'],
-                'host'      => $host,
-                'port'      => $port,
-                'path'      => $path,
-                'query'     => $query,
-                'fragment'  => $fragment
-            ];
+        return [
+            'scheme'    => $scheme,
+            'user'      => $userData['login'],
+            'pass'      => $userData['password'],
+            'host'      => $host,
+            'port'      => $port,
+            'path'      => $path,
+            'query'     => $query,
+            'fragment'  => $fragment
+        ];
     }
     /** **********************************************************************
      * Parse scheme from URI string.
@@ -103,26 +93,22 @@ class UriFactory implements UriFactoryInterface
      *
      * @return  string                      Scheme.
      ************************************************************************/
-    private function parseSchemeFromUri(string &$uri) : string
+    private function parseSchemeFromUri(string &$uri): string
     {
         $colonFirstCharPosition     = strpos($uri, ':');
         $delimiterCharFirstPosition = strpos($uri, '/');
         $bracerCharFirstPosition    = strpos($uri, '[');
         $scheme                     = '';
 
-        if
-        (
-            $colonFirstCharPosition !== false &&
-            (
+        if (
+            $colonFirstCharPosition !== false && (
                 $delimiterCharFirstPosition === false ||
                 $colonFirstCharPosition < $delimiterCharFirstPosition
-            ) &&
-            (
+            ) && (
                 $bracerCharFirstPosition === false ||
                 $colonFirstCharPosition < $bracerCharFirstPosition
             )
-        )
-        {
+        ) {
             $explode    = explode(':', $uri, 2);
             $uri        = $explode[1];
             $scheme     = $explode[0];
@@ -138,22 +124,18 @@ class UriFactory implements UriFactoryInterface
      *
      * @return  string                      Authority.
      ************************************************************************/
-    private function parseAuthorityFromPath(string &$path) : string
+    private function parseAuthorityFromPath(string &$path): string
     {
         $authority = '';
 
-        if (strpos($path, '//') === 0)
-        {
+        if (strpos($path, '//') === 0) {
             $path = substr($path, 2);
 
-            if (strpos($path, '/') !== false)
-            {
+            if (strpos($path, '/') !== false) {
                 $explode    = explode('/', $path, 2);
                 $path       = '/'.$explode[1];
                 $authority  = $explode[0];
-            }
-            else
-            {
+            } else {
                 $authority  = $path;
                 $path       = '';
             }
@@ -169,22 +151,20 @@ class UriFactory implements UriFactoryInterface
      *
      * @return  array                       User data array, login and password.
      ************************************************************************/
-    private function parseUserDataFromAuthority(string &$authority) : array
+    private function parseUserDataFromAuthority(string &$authority): array
     {
-        $userData =
-            [
-                'login'     => '',
-                'password'  => ''
-            ];
+        $userData = [
+            'login'     => '',
+            'password'  => ''
+        ];
 
-        if (strpos($authority, '@') !== false)
-        {
+        if (strpos($authority, '@') !== false) {
             $explode                = explode('@', $authority, 2);
             $authority              = $explode[1];
             $userDataString         = $explode[0];
-            $userDataStringExplode  = explode(':', $userDataString, 2);
-            $userData['login']      = $userDataStringExplode[0];
-            $userData['password']   = $userDataStringExplode[1] ?? '';
+            $userDataStringExploded = explode(':', $userDataString, 2);
+            $userData['login']      = $userDataStringExploded[0];
+            $userData['password']   = $userDataStringExploded[1] ?? '';
         }
 
         return $userData;
@@ -197,31 +177,26 @@ class UriFactory implements UriFactoryInterface
      *
      * @return  int                         Port.
      ************************************************************************/
-    private function parsePortFromAuthority(string &$authority) : int
+    private function parsePortFromAuthority(string &$authority): int
     {
         $colonCharLastPosition  = strripos($authority, ':');
         $bracerCharLastPosition = strripos($authority, ']');
         $port                   = 0;
 
-        if
-        (
-            $colonCharLastPosition !== false &&
-            (
+        if (
+            $colonCharLastPosition !== false && (
                 $bracerCharLastPosition === false ||
                 $colonCharLastPosition > $bracerCharLastPosition
             )
-        )
-        {
+        ) {
             $portValue          = substr($authority, $colonCharLastPosition + 1);
             $portValueIsValid   = is_numeric($portValue) && strpos($portValue, '.') === false;
             $portValueIsEmpty   = $portValue === '';
 
-            if ($portValueIsValid)
-            {
+            if ($portValueIsValid) {
                 $port = (int) $portValue;
             }
-            if ($portValueIsValid || $portValueIsEmpty)
-            {
+            if ($portValueIsValid || $portValueIsEmpty) {
                 $authority = substr($authority, 0, $colonCharLastPosition);
             }
         }
@@ -236,12 +211,11 @@ class UriFactory implements UriFactoryInterface
      *
      * @return  string                      Query.
      ************************************************************************/
-    private function parseQueryFromUri(string &$uri) : string
+    private function parseQueryFromUri(string &$uri): string
     {
         $query = '';
 
-        if (strpos($uri, '?') !== false)
-        {
+        if (strpos($uri, '?') !== false) {
             $explode    = explode('?', $uri, 2);
             $uri        = $explode[0];
             $query      = $explode[1];
@@ -257,12 +231,11 @@ class UriFactory implements UriFactoryInterface
      *
      * @return  string                      Fragment.
      ************************************************************************/
-    private function parseFragmentFromUri(string &$uri) : string
+    private function parseFragmentFromUri(string &$uri): string
     {
         $fragment = '';
 
-        if (strpos($uri, '#') !== false)
-        {
+        if (strpos($uri, '#') !== false) {
             $explode    = explode('#', $uri, 2);
             $uri        = $explode[0];
             $fragment   = $explode[1];

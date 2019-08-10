@@ -7,7 +7,7 @@ use Psr\Http\Message\RequestInterface;
 /** ***********************************************************************************************
  * PSR-7 RequestInterface implementation.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 class Request extends AbstractRequest implements RequestInterface
@@ -41,7 +41,7 @@ class Request extends AbstractRequest implements RequestInterface
      *                                      value MUST be an array of strings
      *                                      for that header.
      ************************************************************************/
-    public function getHeaders() : array
+    public function getHeaders(): array
     {
         $headers                    = parent::getHeaders();
         $hostHeaderValue            = '';
@@ -58,7 +58,7 @@ class Request extends AbstractRequest implements RequestInterface
             }
         }
 
-        if (strlen($hostHeaderValue) <= 0)
+        if (strlen($hostHeaderValue) === 0)
         {
             $uri                = $this->getUri();
             $hostHeaderValue    = $this->getHostFromUri($uri);
@@ -80,7 +80,7 @@ class Request extends AbstractRequest implements RequestInterface
      *                                      comparison. Returns false if no matching
      *                                      header name is found in the message.
      ************************************************************************/
-    public function hasHeader(string $name) : bool
+    public function hasHeader(string $name): bool
     {
         $hasHeader                  = parent::hasHeader($name);
         $headerNameLowercase        = strtolower($name);
@@ -111,13 +111,13 @@ class Request extends AbstractRequest implements RequestInterface
      *                                      does not appear in the message,
      *                                      this method MUST return an empty array.
      ************************************************************************/
-    public function getHeader(string $name) : array
+    public function getHeader(string $name): array
     {
         $headerValues               = parent::getHeader($name);
         $headerNameLowercase        = strtolower($name);
         $hostHeaderNameLowercase    = strtolower(self::HOST_HEADER_NAME);
 
-        if ($headerNameLowercase == $hostHeaderNameLowercase && count($headerValues) <= 0)
+        if ($headerNameLowercase === $hostHeaderNameLowercase && count($headerValues) === 0)
         {
             $uri                = $this->getUri();
             $hostHeaderValue    = $this->getHostFromUri($uri);

@@ -11,18 +11,17 @@ use
 /** ***********************************************************************************************
  * PSR-7 ServerRequestInterface implementation.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 class ServerRequest extends AbstractRequest implements ServerRequestInterface
 {
-    private
-        $serverParams   = [],
-        $cookiesParams  = [],
-        $queryParams    = [],
-        $uploadedFiles  = [],
-        $parsedBody     = null,
-        $attributes     = [];
+    private $serverParams   = [];
+    private $cookiesParams  = [];
+    private $queryParams    = [];
+    private $uploadedFiles  = [];
+    private $parsedBody     = null;
+    private $attributes     = [];
     /** **********************************************************************
      * Constructor.
      *
@@ -45,7 +44,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      *
      * @return  array                           Server parameters.
      ************************************************************************/
-    public function getServerParams() : array
+    public function getServerParams(): array
     {
         return $this->serverParams;
     }
@@ -57,7 +56,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      *
      * @return  array                           Cookies.
      ************************************************************************/
-    public function getCookieParams() : array
+    public function getCookieParams(): array
     {
         return $this->cookiesParams;
     }
@@ -79,7 +78,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      *
      * @return  ServerRequestInterface          Instance with the specified cookies.
      ************************************************************************/
-    public function withCookieParams(array $cookies) : ServerRequestInterface
+    public function withCookieParams(array $cookies): ServerRequestInterface
     {
         $newInstance = clone $this;
         $newInstance->cookiesParams = $cookies;
@@ -98,7 +97,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      *
      * @return  array                           Query string arguments.
      ************************************************************************/
-    public function getQueryParams() : array
+    public function getQueryParams(): array
     {
         return $this->queryParams;
     }
@@ -125,7 +124,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      *
      * @return  ServerRequestInterface          Instance with the specified query string arguments.
      ************************************************************************/
-    public function withQueryParams(array $query) : ServerRequestInterface
+    public function withQueryParams(array $query): ServerRequestInterface
     {
         $newInstance = clone $this;
         $newInstance->queryParams = $query;
@@ -144,7 +143,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      * @return  array                           Array tree of UploadedFileInterface instances;
      *                                          an empty array MUST be returned if no data is present.
      ************************************************************************/
-    public function getUploadedFiles() : array
+    public function getUploadedFiles(): array
     {
         return $this->uploadedFiles;
     }
@@ -160,7 +159,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      * @return  ServerRequestInterface          Instance with the specified uploaded files.
      * @throws  InvalidArgumentException        Invalid structure is provided.
      ************************************************************************/
-    public function withUploadedFiles(array $uploadedFiles) : ServerRequestInterface
+    public function withUploadedFiles(array $uploadedFiles): ServerRequestInterface
     {
         try
         {
@@ -223,7 +222,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      * @return  ServerRequestInterface          Instance with the specified body parameters.
      * @throws  InvalidArgumentException        Unsupported argument type is provided.
      ************************************************************************/
-    public function withParsedBody($data) : ServerRequestInterface
+    public function withParsedBody($data): ServerRequestInterface
     {
         $dataType = gettype($data);
 
@@ -251,7 +250,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      *
      * @return  mixed[]                         Attributes derived from the request.
      ************************************************************************/
-    public function getAttributes() : array
+    public function getAttributes(): array
     {
         return $this->attributes;
     }
@@ -295,7 +294,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      * @return  ServerRequestInterface          Instance with the specified derived
      *                                          request attribute.
      ************************************************************************/
-    public function withAttribute(string $name, $value) : ServerRequestInterface
+    public function withAttribute(string $name, $value): ServerRequestInterface
     {
         $newInstance = clone $this;
         $newInstance->attributes[$name] = $value;
@@ -319,7 +318,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      * @return  ServerRequestInterface          Instance that removes the specified
      *                                          derived request attribute.
      ************************************************************************/
-    public function withoutAttribute(string $name) : ServerRequestInterface
+    public function withoutAttribute(string $name): ServerRequestInterface
     {
         $newInstance = clone $this;
         unset($newInstance->attributes[$name]);
@@ -334,7 +333,7 @@ class ServerRequest extends AbstractRequest implements ServerRequestInterface
      * @return  void
      * @throws  InvalidArgumentException    Validating error.
      ************************************************************************/
-    private function checkUploadedFilesTree(array $files) : void
+    private function checkUploadedFilesTree(array $files): void
     {
         foreach ($files as $value)
         {

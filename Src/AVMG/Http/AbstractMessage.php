@@ -14,23 +14,22 @@ use
 /** ***********************************************************************************************
  * PSR-7 MessageInterface implementation.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 abstract class AbstractMessage implements MessageInterface
 {
-    private
-        $headers        = [],
-        $headerNames    = [],
-        $protocol       = '',
-        $body           = null;
+    private $headers        = [];
+    private $headerNames    = [];
+    private $protocol       = '';
+    private $body           = null;
     /** **********************************************************************
      * Retrieves the HTTP protocol version as a string.
      * The string MUST contain only the HTTP version number (e.g., "1.1", "1.0").
      *
      * @return  string                      HTTP protocol version.
      ************************************************************************/
-    public function getProtocolVersion() : string
+    public function getProtocolVersion(): string
     {
         return strlen($this->protocol) > 0
             ? $this->protocol
@@ -47,7 +46,7 @@ abstract class AbstractMessage implements MessageInterface
      *
      * @return  MessageInterface            Instance with the specified HTTP protocol version.
      ************************************************************************/
-    public function withProtocolVersion(string $version) : MessageInterface
+    public function withProtocolVersion(string $version): MessageInterface
     {
         $newInstance = clone $this;
 
@@ -91,7 +90,7 @@ abstract class AbstractMessage implements MessageInterface
      *                                      value MUST be an array of strings
      *                                      for that header.
      ************************************************************************/
-    public function getHeaders() : array
+    public function getHeaders(): array
     {
         $result = [];
 
@@ -113,7 +112,7 @@ abstract class AbstractMessage implements MessageInterface
      *                                      comparison. Returns false if no matching
      *                                      header name is found in the message.
      ************************************************************************/
-    public function hasHeader(string $name) : bool
+    public function hasHeader(string $name): bool
     {
         $headerNameLowercase = strtolower($name);
 
@@ -135,7 +134,7 @@ abstract class AbstractMessage implements MessageInterface
      *                                      does not appear in the message,
      *                                      this method MUST return an empty array.
      ************************************************************************/
-    public function getHeader(string $name) : array
+    public function getHeader(string $name): array
     {
         $headerNameLowercase = strtolower($name);
 
@@ -162,7 +161,7 @@ abstract class AbstractMessage implements MessageInterface
      *                                      appear in the message, this method MUST
      *                                      return an empty string.
      ************************************************************************/
-    public function getHeaderLine(string $name) : string
+    public function getHeaderLine(string $name): string
     {
         $values = $this->getHeader($name);
 
@@ -185,7 +184,7 @@ abstract class AbstractMessage implements MessageInterface
      *                                      replacing the specified header.
      * @throws  InvalidArgumentException    Invalid header names or values.
      ************************************************************************/
-    public function withHeader(string $name, $value) : MessageInterface
+    public function withHeader(string $name, $value): MessageInterface
     {
         try
         {
@@ -235,7 +234,7 @@ abstract class AbstractMessage implements MessageInterface
      *                                      appended with the given value.
      * @throws  InvalidArgumentException    Invalid header names or values.
      ************************************************************************/
-    public function withAddedHeader(string $name, $value) : MessageInterface
+    public function withAddedHeader(string $name, $value): MessageInterface
     {
         $headerOldValues    = $this->getHeader($name);
         $headerNewValues    = (array) $value;
@@ -263,7 +262,7 @@ abstract class AbstractMessage implements MessageInterface
      *
      * @return  MessageInterface            Instance without the specified header.
      ************************************************************************/
-    public function withoutHeader(string $name) : MessageInterface
+    public function withoutHeader(string $name): MessageInterface
     {
         $headerNameLowercase    = strtolower($name);
         $newInstance            = clone $this;
@@ -281,7 +280,7 @@ abstract class AbstractMessage implements MessageInterface
      *
      * @return  StreamInterface             Body as a stream.
      ************************************************************************/
-    public function getBody() : StreamInterface
+    public function getBody(): StreamInterface
     {
         return $this->body instanceof StreamInterface
             ? $this->body
@@ -300,7 +299,7 @@ abstract class AbstractMessage implements MessageInterface
      *
      * @return  MessageInterface            Instance with the specified message body.
      ************************************************************************/
-    public function withBody(StreamInterface $body) : MessageInterface
+    public function withBody(StreamInterface $body): MessageInterface
     {
         $newInstance = clone $this;
         $newInstance->body = $body;

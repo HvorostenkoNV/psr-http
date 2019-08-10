@@ -24,7 +24,7 @@ use InvalidArgumentException;
  *
  * @see http://tools.ietf.org/html/rfc3986 (the URI specification)
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface UriInterface
@@ -44,7 +44,7 @@ interface UriInterface
      *
      * @return  string                      URI scheme.
      ************************************************************************/
-    public function getScheme() : string;
+    public function getScheme(): string;
     /** **********************************************************************
      * Retrieve the authority component of the URI.
      *
@@ -64,7 +64,7 @@ interface UriInterface
      *
      * @return  string                      URI authority, in "[user-info@]host[:port]" format.
      ************************************************************************/
-    public function getAuthority() : string;
+    public function getAuthority(): string;
     /** **********************************************************************
      * Retrieve the user information component of the URI.
      *
@@ -80,7 +80,7 @@ interface UriInterface
      *
      * @return  string                      URI user information, in "username[:password]" format.
      ************************************************************************/
-    public function getUserInfo() : string;
+    public function getUserInfo(): string;
     /** **********************************************************************
      * Retrieve the host component of the URI.
      *
@@ -93,7 +93,7 @@ interface UriInterface
      *
      * @return  string                      URI host.
      ************************************************************************/
-    public function getHost() : string;
+    public function getHost(): string;
     /** **********************************************************************
      * Retrieve the port component of the URI.
      *
@@ -109,7 +109,7 @@ interface UriInterface
      *
      * @return  null|int                    URI port.
      ************************************************************************/
-    public function getPort() : ?int;
+    public function getPort(): ?int;
     /** **********************************************************************
      * Retrieve the path component of the URI.
      *
@@ -136,7 +136,7 @@ interface UriInterface
      *
      * @return  string                      URI path.
      ************************************************************************/
-    public function getPath() : string;
+    public function getPath(): string;
     /** **********************************************************************
      * Retrieve the query string of the URI.
      *
@@ -158,7 +158,7 @@ interface UriInterface
      *
      * @return  string                      URI query string.
      ************************************************************************/
-    public function getQuery() : string;
+    public function getQuery(): string;
     /** **********************************************************************
      * Retrieve the fragment component of the URI.
      *
@@ -176,7 +176,7 @@ interface UriInterface
      *
      * @return  string                      URI fragment.
      ************************************************************************/
-    public function getFragment() : string;
+    public function getFragment(): string;
     /** **********************************************************************
      * Return an instance with the specified scheme.
      *
@@ -193,7 +193,7 @@ interface UriInterface
      * @return  UriInterface                Instance with the specified scheme.
      * @throws  InvalidArgumentException    Invalid or unsupported schemes.
      ************************************************************************/
-    public function withScheme(string $scheme) : UriInterface;
+    public function withScheme(string $scheme): UriInterface;
     /** **********************************************************************
      * Return an instance with the specified user information.
      *
@@ -209,7 +209,7 @@ interface UriInterface
      *
      * @return  UriInterface                Instance with the specified user information.
      ************************************************************************/
-    public function withUserInfo(string $user, string $password = '') : UriInterface;
+    public function withUserInfo(string $user, string $password = ''): UriInterface;
     /** **********************************************************************
      * Return an instance with the specified host.
      *
@@ -223,7 +223,7 @@ interface UriInterface
      * @return  UriInterface                Instance with the specified host.
      * @throws  InvalidArgumentException    Invalid hostname.
      ************************************************************************/
-    public function withHost(string $host) : UriInterface;
+    public function withHost(string $host): UriInterface;
     /** **********************************************************************
      * Return an instance with the specified port.
      *
@@ -242,7 +242,7 @@ interface UriInterface
      * @return  UriInterface                Instance with the specified port.
      * @throws  InvalidArgumentException    Invalid ports.
      ************************************************************************/
-    public function withPort(int $port = 0) : UriInterface;
+    public function withPort(int $port = 0): UriInterface;
     /** **********************************************************************
      * Return an instance with the specified path.
      *
@@ -266,7 +266,7 @@ interface UriInterface
      * @return  UriInterface                Instance with the specified path.
      * @throws  InvalidArgumentException    Invalid paths.
      ************************************************************************/
-    public function withPath(string $path) : UriInterface;
+    public function withPath(string $path): UriInterface;
     /** **********************************************************************
      * Return an instance with the specified query string.
      *
@@ -283,7 +283,7 @@ interface UriInterface
      * @return  UriInterface                Instance with the specified query string.
      * @throws  InvalidArgumentException    Invalid query strings.
      ************************************************************************/
-    public function withQuery(string $query) : UriInterface;
+    public function withQuery(string $query): UriInterface;
     /** **********************************************************************
      * Return an instance with the specified URI fragment.
      *
@@ -299,7 +299,7 @@ interface UriInterface
      *
      * @return  UriInterface                Instance with the specified URI fragment.
      ************************************************************************/
-    public function withFragment(string $fragment) : UriInterface;
+    public function withFragment(string $fragment): UriInterface;
     /** **********************************************************************
      * Return the string representation as a URI reference.
      *
@@ -324,5 +324,5 @@ interface UriInterface
      *
      * @return  string                      String representation as a URI reference.
      ************************************************************************/
-    public function __toString() : string;
+    public function __toString(): string;
 }

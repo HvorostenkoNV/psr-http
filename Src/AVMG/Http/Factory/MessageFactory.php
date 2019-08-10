@@ -18,7 +18,7 @@ use
  * PSR-7 RequestFactoryInterface, ServerRequestFactoryInterface,
  * ResponseFactoryInterface implementation.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 class
@@ -36,7 +36,7 @@ implements
      *
      * @return  RequestInterface                    Request.
      ************************************************************************/
-    public function createRequest(string $method, $uri) : RequestInterface
+    public function createRequest(string $method, $uri): RequestInterface
     {
         $uriInstance = $uri;
 
@@ -64,7 +64,7 @@ implements
      *
      * @return  ServerRequestInterface              New server request.
      ************************************************************************/
-    public function createServerRequest(string $method, $uri, array $serverParams = []) : ServerRequestInterface
+    public function createServerRequest(string $method, $uri, array $serverParams = []): ServerRequestInterface
     {
         $uriInstance = $uri;
 
@@ -87,7 +87,7 @@ implements
      *
      * @return  ResponseInterface           Response.
      ************************************************************************/
-    public function createResponse(int $code = 200, string $reasonPhrase = '') : ResponseInterface
+    public function createResponse(int $code = 200, string $reasonPhrase = ''): ResponseInterface
     {
         return new Response($code, $reasonPhrase);
     }

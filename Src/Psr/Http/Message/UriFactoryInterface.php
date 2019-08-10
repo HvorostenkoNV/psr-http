@@ -7,7 +7,7 @@ use InvalidArgumentException;
 /** ***********************************************************************************************
  * URI factory interface.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface UriFactoryInterface
@@ -20,5 +20,5 @@ interface UriFactoryInterface
      * @return  UriInterface                URI.
      * @throws  InvalidArgumentException    Given URI cannot be parsed.
      ************************************************************************/
-    public function createUri(string $uri = '') : UriInterface;
+    public function createUri(string $uri = ''): UriInterface;
 }

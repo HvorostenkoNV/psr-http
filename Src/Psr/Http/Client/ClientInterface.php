@@ -3,13 +3,14 @@ declare(strict_types=1);
 
 namespace Psr\Http\Client;
 
-use
-    Psr\Http\Message\RequestInterface,
-    Psr\Http\Message\ResponseInterface;
+use Psr\Http\{
+    Message\ResponseInterface,
+    Message\RequestInterface
+};
 /** ***********************************************************************************************
  * Client interface.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface ClientInterface
@@ -22,5 +23,5 @@ interface ClientInterface
      * @return  ResponseInterface           Response.
      * @throws  ClientExceptionInterface    Error happens while processing the request.
      ************************************************************************/
-    public function sendRequest(RequestInterface $request) : ResponseInterface;
+    public function sendRequest(RequestInterface $request): ResponseInterface;
 }

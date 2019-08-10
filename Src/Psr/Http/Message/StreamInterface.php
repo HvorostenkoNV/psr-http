@@ -11,7 +11,7 @@ use RuntimeException;
  * a wrapper around the most common operations, including serialization of
  * the entire stream to a string.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface StreamInterface
@@ -31,13 +31,13 @@ interface StreamInterface
      *
      * @return  string                      All data from the stream.
      ************************************************************************/
-    public function __toString() : string;
+    public function __toString(): string;
     /** **********************************************************************
      * Closes the stream and any underlying resources.
      *
      * @return void
      ************************************************************************/
-    public function close() : void;
+    public function close(): void;
     /** **********************************************************************
      * Separates any underlying resources from the stream.
      *
@@ -51,26 +51,26 @@ interface StreamInterface
      *
      * @return int|null                     Size in bytes if known, or null if unknown.
      ************************************************************************/
-    public function getSize() : ?int;
+    public function getSize(): ?int;
     /** **********************************************************************
      * Returns the current position of the file read/write pointer.
      *
      * @return  int                         Position of the file pointer.
      * @throws  RuntimeException            Error.
      ************************************************************************/
-    public function tell() : int;
+    public function tell(): int;
     /** **********************************************************************
      * Returns true if the stream is at the end of the stream.
      *
      * @return bool                         Stream is at the end of the stream.
      ************************************************************************/
-    public function eof() : bool;
+    public function eof(): bool;
     /** **********************************************************************
      * Returns whether or not the stream is seekable.
      *
      * @return bool                         Stream is seekable.
      ************************************************************************/
-    public function isSeekable() : bool;
+    public function isSeekable(): bool;
     /** **********************************************************************
      * Seek to a position in the stream.
      *
@@ -88,7 +88,7 @@ interface StreamInterface
      * @return  void
      * @throws  RuntimeException            Failure.
      ************************************************************************/
-    public function seek(int $offset, int $whence = SEEK_SET) : void;
+    public function seek(int $offset, int $whence = SEEK_SET): void;
     /** **********************************************************************
      * Seek to the beginning of the stream.
      *
@@ -101,13 +101,13 @@ interface StreamInterface
      * @return  void
      * @throws  RuntimeException            Failure.
      ************************************************************************/
-    public function rewind() : void;
+    public function rewind(): void;
     /** **********************************************************************
      * Returns whether or not the stream is writable.
      *
      * @return bool                         Stream is writable.
      ************************************************************************/
-    public function isWritable() : bool;
+    public function isWritable(): bool;
     /** **********************************************************************
      * Write data to the stream.
      *
@@ -116,13 +116,13 @@ interface StreamInterface
      * @return  int                         Number of bytes written to the stream.
      * @throws  RuntimeException            Failure.
      ************************************************************************/
-    public function write(string $string) : int;
+    public function write(string $string): int;
     /** **********************************************************************
      * Returns whether or not the stream is readable.
      *
      * @return bool                         Stream is readable.
      ************************************************************************/
-    public function isReadable() : bool;
+    public function isReadable(): bool;
     /** **********************************************************************
      * Read data from the stream.
      *
@@ -135,14 +135,14 @@ interface StreamInterface
      *                                      or an empty string if no bytes are available.
      * @throws  RuntimeException            Error occurs.
      ************************************************************************/
-    public function read(int $length) : string;
+    public function read(int $length): string;
     /** **********************************************************************
      * Returns the remaining contents in a string
      *
      * @return  string                      Remaining contents.
      * @throws  RuntimeException            Unable to read or occurs while reading.
      ************************************************************************/
-    public function getContents() : string;
+    public function getContents(): string;
     /** **********************************************************************
      * Get stream metadata as an associative array or retrieve a specific key.
      *

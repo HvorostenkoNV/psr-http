@@ -7,20 +7,19 @@ use AVMG\Http\Exception\NormalizingException;
 /** ***********************************************************************************************
  * HTTP protocol class.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 class Protocol
 {
-    private const
-        AVAILABLE_PROTOCOL_VERSIONS =
-            [
-                '0.9',
-                '1.0',
-                '1.1',
-                '2.0'
-            ],
-        DEFAULT_PROTOCOL_VERSIONS   = '1.1';
+    private const AVAILABLE_PROTOCOL_VERSIONS   =
+        [
+            '0.9',
+            '1.0',
+            '1.1',
+            '2.0'
+        ];
+    private const DEFAULT_PROTOCOL_VERSIONS     = '1.1';
     /** **********************************************************************
      * Normalize the HTTP protocol version.
      *
@@ -29,7 +28,7 @@ class Protocol
      * @return  string                      Normalized HTTP protocol version.
      * @throws  NormalizingException        Normalizing error.
      ************************************************************************/
-    public static function normalize(string $version) : string
+    public static function normalize(string $version): string
     {
         if (!in_array($version, self::AVAILABLE_PROTOCOL_VERSIONS))
         {
@@ -43,7 +42,7 @@ class Protocol
      *
      * @return  string[]                    Available HTTP protocol versions.
      ************************************************************************/
-    public static function getAvailableValues() : array
+    public static function getAvailableValues(): array
     {
         return self::AVAILABLE_PROTOCOL_VERSIONS;
     }
@@ -52,7 +51,7 @@ class Protocol
      *
      * @return  string                      Default HTTP protocol version.
      ************************************************************************/
-    public static function getDefault() : string
+    public static function getDefault(): string
     {
         return self::DEFAULT_PROTOCOL_VERSIONS;
     }

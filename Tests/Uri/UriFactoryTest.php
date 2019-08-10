@@ -3,15 +3,17 @@ declare(strict_types=1);
 
 namespace AVMG\Http\Tests\Uri;
 
-use
-    Throwable,
-    InvalidArgumentException,
-    PHPUnit\Framework\TestCase,
-    AVMG\Http\Factory\UriFactory;
+use Throwable;
+use InvalidArgumentException;
+use PHPUnit\Framework\TestCase;
+use AVMG\Http\Tests\DataGenerator\GeneratorMediator as DataGenerator;
+use AVMG\Http\Factory\UriFactory;
+
+use function is_null;
 /** ***********************************************************************************************
  * PSR-7 UriFactoryInterface implementation test.
  *
- * @package avmg_psr_http_tests
+ * @package AVMG\Http\Tests
  * @author  Hvorostenko
  *************************************************************************************************/
 class UriFactoryTest extends TestCase
@@ -27,12 +29,11 @@ class UriFactoryTest extends TestCase
      * @return              void
      * @throws              Throwable
      ************************************************************************/
-    public function testCreateUriThrowsException(string $uri) : void
+    public function testCreateUriThrowsException(string $uri): void
     {
-        (new UriFactory)->createUri($uri);
+        (new UriFactory())->createUri($uri);
 
-        self::fail
-        (
+        self::fail(
             "Method \"UriFactory::createUri\" threw no expected exception.\n".
             "Expects \"InvalidArgumentException\" exception on parsing uri \"$uri\".\n".
             "Caught no exception.\n"
@@ -49,14 +50,11 @@ class UriFactoryTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testCreateUriParsesScheme(string $uri, string $normalizedScheme) : void
+    public function testCreateUriParsesScheme(string $uri, string $normalizedScheme): void
     {
-        $caughtScheme = (new UriFactory)
-            ->createUri($uri)
-            ->getScheme();
+        $caughtScheme = (new UriFactory())->createUri($uri)->getScheme();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $normalizedScheme,
             $caughtScheme,
             "Method \"Uri::getScheme\" returned unexpected result.\n".
@@ -75,14 +73,11 @@ class UriFactoryTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testCreateUriParsesUserInfo(string $uri, string $normalizedUserInfo) : void
+    public function testCreateUriParsesUserInfo(string $uri, string $normalizedUserInfo): void
     {
-        $caughtUserInfo = (new UriFactory)
-            ->createUri($uri)
-            ->getUserInfo();
+        $caughtUserInfo = (new UriFactory())->createUri($uri)->getUserInfo();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $normalizedUserInfo,
             $caughtUserInfo,
             "Method \"Uri::getUserInfo\" returned unexpected result.\n".
@@ -101,14 +96,11 @@ class UriFactoryTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testCreateUriParsesHost(string $uri, string $normalizedHost) : void
+    public function testCreateUriParsesHost(string $uri, string $normalizedHost): void
     {
-        $caughtHost = (new UriFactory)
-            ->createUri($uri)
-            ->getHost();
+        $caughtHost = (new UriFactory())->createUri($uri)->getHost();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $normalizedHost,
             $caughtHost,
             "Method \"Uri::getHost\" returned unexpected result.\n".
@@ -127,23 +119,16 @@ class UriFactoryTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testCreateUriParsesPort(string $uri, int $normalizedPort) : void
+    public function testCreateUriParsesPort(string $uri, int $normalizedPort): void
     {
-        $caughtPort = (new UriFactory)
-            ->createUri($uri)
-            ->getPort();
+        $caughtPort     = (new UriFactory())->createUri($uri)->getPort();
+        $expectedPort   = $normalizedPort === 0 ? null : $normalizedPort;
 
-        if ($normalizedPort === 0)
-        {
-            $normalizedPort = null;
-        }
-
-        self::assertEquals
-        (
-            $normalizedPort,
+        self::assertEquals(
+            $expectedPort,
             $caughtPort,
             "Method \"Uri::getPort\" returned unexpected result.\n".
-            "Expected port from uri \"$uri\" is \"$normalizedPort\".\n".
+            "Expected port from uri \"$uri\" is \"$expectedPort\".\n".
             "Caught port is \"$caughtPort\".\n"
         );
     }
@@ -158,14 +143,11 @@ class UriFactoryTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testCreateUriParsesPath(string $uri, string $normalizedPath) : void
+    public function testCreateUriParsesPath(string $uri, string $normalizedPath): void
     {
-        $caughtPath = (new UriFactory)
-            ->createUri($uri)
-            ->getPath();
+        $caughtPath = (new UriFactory())->createUri($uri)->getPath();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $normalizedPath,
             $caughtPath,
             "Method \"Uri::getPath\" returned unexpected result.\n".
@@ -184,14 +166,11 @@ class UriFactoryTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testCreateUriParsesQuery(string $uri, string $normalizedQuery) : void
+    public function testCreateUriParsesQuery(string $uri, string $normalizedQuery): void
     {
-        $caughtQuery = (new UriFactory)
-            ->createUri($uri)
-            ->getQuery();
+        $caughtQuery = (new UriFactory())->createUri($uri)->getQuery();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $normalizedQuery,
             $caughtQuery,
             "Method \"Uri::getQuery\" returned unexpected result.\n".
@@ -210,14 +189,11 @@ class UriFactoryTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testCreateUriParsesFragment(string $uri, string $normalizedFragment) : void
+    public function testCreateUriParsesFragment(string $uri, string $normalizedFragment): void
     {
-        $caughtFragment = (new UriFactory)
-            ->createUri($uri)
-            ->getFragment();
+        $caughtFragment = (new UriFactory())->createUri($uri)->getFragment();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $normalizedFragment,
             $caughtFragment,
             "Method \"Uri::getFragment\" returned unexpected result.\n".
@@ -236,12 +212,11 @@ class UriFactoryTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testUriNormalizes(string $uri, string $normalizedUri) : void
+    public function testUriNormalizes(string $uri, string $normalizedUri): void
     {
-        $caughtUriString = (string) (new UriFactory)->createUri($uri);
+        $caughtUriString = (string) (new UriFactory())->createUri($uri);
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $normalizedUri,
             $caughtUriString,
             "Method \"Uri::__toString\" returned unexpected result.\n".
@@ -254,47 +229,37 @@ class UriFactoryTest extends TestCase
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function dataProviderUriInvalidValues() : array
+    public function dataProviderUriInvalidValues(): array
     {
-        $schemeValues   = UriDataGenerator::getSchemeValues();
-        $hostValues     = UriDataGenerator::getHostValues();
-        $portValues     = UriDataGenerator::getPortValues();
-        $pathValues     = UriDataGenerator::getPathValues();
-        $queryValues    = UriDataGenerator::getQueryValues();
+        $schemeValues   = DataGenerator::generate('uri.scheme');
+        $hostValues     = DataGenerator::generate('uri.host');
+        $portValues     = DataGenerator::generate('uri.port');
+        $pathValues     = DataGenerator::generate('uri.path');
+        $queryValues    = DataGenerator::generate('uri.query');
         $result         = [];
 
-        foreach ($schemeValues as $providedValue => $expectedValue)
-        {
-            if (is_null($expectedValue))
-            {
+        foreach ($schemeValues as $providedValue => $expectedValue) {
+            if (is_null($expectedValue)) {
                 $result[] = ["$providedValue://site.com"];
             }
         }
-        foreach ($hostValues as $providedValue => $expectedValue)
-        {
-            if (is_null($expectedValue))
-            {
+        foreach ($hostValues as $providedValue => $expectedValue) {
+            if (is_null($expectedValue)) {
                 $result[] = ["scheme://$providedValue"];
             }
         }
-        foreach ($portValues as $providedValue => $expectedValue)
-        {
-            if (is_null($expectedValue))
-            {
+        foreach ($portValues as $providedValue => $expectedValue) {
+            if (is_null($expectedValue)) {
                 $result[] = ["scheme://host:$providedValue"];
             }
         }
-        foreach ($pathValues as $providedValue => $expectedValue)
-        {
-            if (is_null($expectedValue))
-            {
+        foreach ($pathValues as $providedValue => $expectedValue) {
+            if (is_null($expectedValue)) {
                 $result[] = ["scheme:$providedValue"];
             }
         }
-        foreach ($queryValues as $providedValue => $expectedValue)
-        {
-            if (is_null($expectedValue))
-            {
+        foreach ($queryValues as $providedValue => $expectedValue) {
+            if (is_null($expectedValue)) {
                 $result[] = ["scheme:path?$providedValue"];
             }
         }
@@ -310,15 +275,13 @@ class UriFactoryTest extends TestCase
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function dataProviderUriWithScheme() : array
+    public function dataProviderUriWithScheme(): array
     {
-        $values = UriDataGenerator::getSchemeValues();
+        $values = DataGenerator::generate('uri.scheme');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = ["$providedValue://site.com", $expectedValue];
             }
         }
@@ -350,15 +313,13 @@ class UriFactoryTest extends TestCase
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function dataProviderUriWithUserInfo() : array
+    public function dataProviderUriWithUserInfo(): array
     {
-        $values = UriDataGenerator::getUserInfoValues();
+        $values = DataGenerator::generate('uri.userInfo');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = ["//$providedValue@site.com", $expectedValue];
             }
         }
@@ -374,15 +335,13 @@ class UriFactoryTest extends TestCase
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function dataProviderUriWithHost() : array
+    public function dataProviderUriWithHost(): array
     {
-        $values = UriDataGenerator::getHostValues();
+        $values = DataGenerator::generate('uri.host');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = ["//$providedValue", $expectedValue];
             }
         }
@@ -422,15 +381,13 @@ class UriFactoryTest extends TestCase
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function dataProviderUriWithPort() : array
+    public function dataProviderUriWithPort(): array
     {
-        $values = UriDataGenerator::getPortValues();
+        $values = DataGenerator::generate('uri.port');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = ["//host:$providedValue", $expectedValue];
             }
         }
@@ -464,15 +421,13 @@ class UriFactoryTest extends TestCase
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function dataProviderUriWithPath() : array
+    public function dataProviderUriWithPath(): array
     {
-        $values = UriDataGenerator::getPathValues();
+        $values = DataGenerator::generate('uri.path');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = ["scheme://host/$providedValue", "/$expectedValue"];
             }
         }
@@ -507,15 +462,13 @@ class UriFactoryTest extends TestCase
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function dataProviderUriWithQuery() : array
+    public function dataProviderUriWithQuery(): array
     {
-        $values = UriDataGenerator::getQueryValues();
+        $values = DataGenerator::generate('uri.query');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = ["scheme://host?$providedValue", $expectedValue];
             }
         }
@@ -541,15 +494,13 @@ class UriFactoryTest extends TestCase
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function dataProviderUriWithFragment() : array
+    public function dataProviderUriWithFragment(): array
     {
-        $values = UriDataGenerator::getFragmentValues();
+        $values = DataGenerator::generate('uri.fragment');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = ["scheme://host#$providedValue", $expectedValue];
             }
         }
@@ -574,49 +525,39 @@ class UriFactoryTest extends TestCase
      *
      * @return  array                               Data.
      ************************************************************************/
-    public function dataProviderUriNormalization() : array
+    public function dataProviderUriNormalization(): array
     {
-        $schemeValues   = UriDataGenerator::getSchemeValues();
-        $userInfoValues = UriDataGenerator::getUserInfoValues();
-        $hostValues     = UriDataGenerator::getHostValues();
-        $portValues     = UriDataGenerator::getPortValues();
-        $pathValues     = UriDataGenerator::getPathValues();
-        $queryValues    = UriDataGenerator::getQueryValues();
-        $fragmentValues = UriDataGenerator::getFragmentValues();
+        $schemeValues   = DataGenerator::generate('uri.scheme');
+        $userInfoValues = DataGenerator::generate('uri.userInfo');
+        $hostValues     = DataGenerator::generate('uri.host');
+        $portValues     = DataGenerator::generate('uri.port');
+        $pathValues     = DataGenerator::generate('uri.path');
+        $queryValues    = DataGenerator::generate('uri.query');
+        $fragmentValues = DataGenerator::generate('uri.fragment');
         $result         = [];
 
-        foreach ($schemeValues as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($schemeValues as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = ["$providedValue://site.com", "$expectedValue://site.com"];
             }
         }
-        foreach ($userInfoValues as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($userInfoValues as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = ["//$providedValue@site.com", "//$expectedValue@site.com"];
             }
         }
-        foreach ($hostValues as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($hostValues as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = ["scheme://$providedValue", "scheme://$expectedValue"];
             }
         }
-        foreach ($portValues as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue) && $expectedValue !== 0)
-            {
+        foreach ($portValues as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue) && $expectedValue !== 0) {
                 $result[] = ["//host:$providedValue", "//host:$expectedValue"];
             }
         }
-        foreach ($pathValues as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($pathValues as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = ["//host/$providedValue",   "//host/$expectedValue"];
                 $result[] = ["scheme:$providedValue",   "scheme:$expectedValue"];
             }
@@ -628,10 +569,8 @@ class UriFactoryTest extends TestCase
                 $result[] = ["//host?$providedValue", "//host?$expectedValue"];
             }
         }
-        foreach ($fragmentValues as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($fragmentValues as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = ["//host#$providedValue", "//host#$expectedValue"];
             }
         }

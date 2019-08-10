@@ -5,7 +5,7 @@ namespace Psr\Http\Message;
 /** ***********************************************************************************************
  * Response factory interface.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface ResponseFactoryInterface
@@ -21,5 +21,5 @@ interface ResponseFactoryInterface
      *
      * @return  ResponseInterface           Response.
      ************************************************************************/
-    public function createResponse(int $code = 200, string $reasonPhrase = '') : ResponseInterface;
+    public function createResponse(int $code = 200, string $reasonPhrase = ''): ResponseInterface;
 }

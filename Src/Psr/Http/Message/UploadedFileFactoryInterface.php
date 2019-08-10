@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace Psr\Http\Message;
 
 use InvalidArgumentException;
+
+use const UPLOAD_ERR_OK;
 /** ***********************************************************************************************
  * Uploaded file factory interface.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface UploadedFileFactoryInterface
@@ -23,11 +25,11 @@ interface UploadedFileFactoryInterface
      *
      * @param   StreamInterface $stream             The underlying stream representing
      *                                              the uploaded file content.
-     * @param   int             $size               The size of the file in bytes.
-     * @param   int             $error              The PHP file upload error.
-     * @param   string          $clientFilename     The filename as provided by
+     * @param   int|null        $size               The size of the file in bytes.
+     * @param   int|null        $error              The PHP file upload error.
+     * @param   string|null     $clientFilename     The filename as provided by
      *                                              the client, if any.
-     * @param   string          $clientMediaType    The media type as provided by
+     * @param   string|null     $clientMediaType    The media type as provided by
      *                                              the client, if any.
      *
      * @return  UploadedFileInterface               Uploaded file.
@@ -36,9 +38,9 @@ interface UploadedFileFactoryInterface
     public function createUploadedFile
     (
         StreamInterface $stream,
-        int             $size               = null,
-        int             $error              = UPLOAD_ERR_OK,
-        string          $clientFilename     = null,
-        string          $clientMediaType    = null
-    ) : UploadedFileInterface;
+        ?int            $size               = null,
+        ?int            $error              = UPLOAD_ERR_OK,
+        ?string         $clientFilename     = null,
+        ?string         $clientMediaType    = null
+    ): UploadedFileInterface;
 }

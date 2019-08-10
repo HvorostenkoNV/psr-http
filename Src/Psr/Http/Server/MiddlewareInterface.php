@@ -3,9 +3,10 @@ declare(strict_types=1);
 
 namespace Psr\Http\Server;
 
-use
-    Psr\Http\Message\ResponseInterface,
-    Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\{
+    Message\ResponseInterface,
+    Message\ServerRequestInterface
+};
 /** ***********************************************************************************************
  * Participant in processing a server request and response.
  *
@@ -13,7 +14,7 @@ use
  * by acting on the request, generating the response, or forwarding the
  * request to a subsequent middleware and possibly acting on its response.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface MiddlewareInterface
@@ -30,5 +31,9 @@ interface MiddlewareInterface
      *
      * @return  ResponseInterface                   Response.
      ************************************************************************/
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler) : ResponseInterface;
+    public function process
+    (
+        ServerRequestInterface  $request,
+        RequestHandlerInterface $handler
+    ): ResponseInterface;
 }

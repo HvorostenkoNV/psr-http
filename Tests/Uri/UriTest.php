@@ -1,190 +1,49 @@
 <?php
 declare(strict_types=1);
+
 namespace AVMG\Http\Tests\Uri;
-use
-    Throwable,
-    InvalidArgumentException,
-    PHPUnit\Framework\TestCase,
-    AVMG\Http\Uri\Uri;
+
+use Throwable;
+use InvalidArgumentException;
+use PHPUnit\Framework\TestCase;
+use AVMG\Http\Tests\{
+    Collection\CollectionMediator,
+    DataGenerator\GeneratorMediator as DataGenerator
+};
+use AVMG\Http\Uri\Uri;
+
+use function is_null;
+use function explode;
+use function call_user_func_array;
 /** ***********************************************************************************************
  * PSR-7 UriInterface implementation test.
  *
- * @package avmg_psr_http_tests
+ * @package AVMG\Http\Tests
  * @author  Hvorostenko
  *************************************************************************************************/
 class UriTest extends TestCase
 {
-    private const SCHEMES_STANDARD_PORTS =
-        [
-            'http'  => 80,
-            'https' => 443
-        ];
-    /** **********************************************************************
-     * Test URI setters methods return new instance.
-     *
-     * @return  void
-     * @throws  Throwable
-     ************************************************************************/
-    public function testSettersMethodsReturnNewInstance() : void
-    {
-        $methods =
-            [
-                'withScheme'    => ['scheme'],
-                'withUserInfo'  => ['user', 'password'],
-                'withHost'      => ['site.com'],
-                'withPort'      => [50],
-                'withPath'      => ['/path/'],
-                'withQuery'     => ['key=value'],
-                'withFragment'  => ['fragment']
-            ];
-
-        foreach ($methods as $methodName => $methodArguments)
-        {
-            $uri    = new Uri;
-            $uriNew = call_user_func_array([$uri, $methodName], $methodArguments);
-
-            self::assertNotEquals
-            (
-                $uri,
-                $uriNew,
-                "Method \"Uri::$methodName\" returned unexpected result.\n".
-                "Expected result must be new instance of Uri.\n".
-                "Caught result is the same instance.\n"
-            );
-        }
-    }
-    /** **********************************************************************
-     * Test "Uri::withScheme" throws exception with invalid argument.
-     *
-     * @dataProvider        dataProviderSchemeInvalidValues
-     * @expectedException   InvalidArgumentException
-     *
-     * @param               string $scheme              Scheme.
-     *
-     * @return              void
-     * @throws              Throwable
-     ************************************************************************/
-    public function testWithSchemeThrowsException(string $scheme) : void
-    {
-        (new Uri)->withScheme($scheme);
-
-        self::fail
-        (
-            "Method \"Uri::withScheme\" threw no expected exception.\n".
-            "Expects \"InvalidArgumentException\" exception on setting scheme \"$scheme\".\n".
-            "Caught no exception.\n"
-        );
-    }
-    /** **********************************************************************
-     * Test "Uri::withHost" throws exception with invalid argument.
-     *
-     * @dataProvider        dataProviderHostInvalidValues
-     * @expectedException   InvalidArgumentException
-     *
-     * @param               string $host                Host.
-     *
-     * @return              void
-     * @throws              Throwable
-     ************************************************************************/
-    public function testWithHostThrowsException(string $host) : void
-    {
-        (new Uri)->withHost($host);
-
-        self::fail
-        (
-            "Method \"Uri::withHost\" threw no expected exception.\n".
-            "Expects \"InvalidArgumentException\" exception on setting host \"$host\".\n".
-            "Caught no exception.\n"
-        );
-    }
-    /** **********************************************************************
-     * Test "Uri::withPort" throws exception with invalid argument.
-     *
-     * @dataProvider        dataProviderPortInvalidValues
-     * @expectedException   InvalidArgumentException
-     *
-     * @param               int $port                   Port.
-     *
-     * @return              void
-     * @throws              Throwable
-     ************************************************************************/
-    public function testWithPortThrowsException(int $port) : void
-    {
-        (new Uri)->withPort($port);
-
-        self::fail
-        (
-            "Method \"Uri::withPort\" threw no expected exception.\n".
-            "Expects \"InvalidArgumentException\" exception on setting port \"$port\".\n".
-            "Caught no exception.\n"
-        );
-    }
-    /** **********************************************************************
-     * Test "Uri::withPath" throws exception with invalid argument.
-     *
-     * @dataProvider        dataProviderPathInvalidValues
-     * @expectedException   InvalidArgumentException
-     *
-     * @param               string $path                Path.
-     *
-     * @return              void
-     * @throws              Throwable
-     ************************************************************************/
-    public function testWithPathThrowsException(string $path) : void
-    {
-        (new Uri)->withPath($path);
-
-        self::fail
-        (
-            "Method \"Uri::withPath\" threw no expected exception.\n".
-            "Expects \"InvalidArgumentException\" exception on setting path \"$path\".\n".
-            "Caught no exception.\n"
-        );
-    }
-    /** **********************************************************************
-     * Test "Uri::withQuery" throws exception with invalid argument.
-     *
-     * @dataProvider        dataProviderQueryInvalidValues
-     * @expectedException   InvalidArgumentException
-     *
-     * @param               string $query               Query.
-     *
-     * @return              void
-     * @throws              Throwable
-     ************************************************************************/
-    public function testWithQueryThrowsException(string $query) : void
-    {
-        (new Uri)->withQuery($query);
-
-        self::fail
-        (
-            "Method \"Uri::withQuery\" threw no expected exception.\n".
-            "Expects \"InvalidArgumentException\" exception on setting query \"$query\".\n".
-            "Caught no exception.\n"
-        );
-    }
     /** **********************************************************************
      * Test "Uri::getScheme" provides valid normalized value.
      *
      * @dataProvider    dataProviderSchemeValidValues
      *
-     * @param           string  $scheme                 Scheme.
-     * @param           string  $normalizedScheme       Normalized scheme.
+     * @param           string  $value                  Value.
+     * @param           string  $valueExpected          Expected value.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testGetScheme(string $scheme, string $normalizedScheme) : void
+    public function testGetScheme(string $value, string $valueExpected): void
     {
-        $caughtScheme = (new Uri)->withScheme($scheme)->getScheme();
+        $valueCaught = (new Uri())->withScheme($value)->getScheme();
 
-        self::assertEquals
-        (
-            $normalizedScheme,
-            $caughtScheme,
-            "Method \"Uri::getScheme\" returned unexpected result.\n".
-            "Expected result after setting scheme \"$scheme\" is \"$normalizedScheme\".\n".
-            "Caught result is \"$caughtScheme\".\n"
+        self::assertEquals(
+            $valueExpected,
+            $valueCaught,
+            "Method \"Uri::getScheme\" returned unexpected value.\n".
+            "Expected value after setting \"$value\" is \"$valueExpected\".\n".
+            "Caught value is \"$valueCaught\".\n"
         );
     }
     /** **********************************************************************
@@ -192,23 +51,22 @@ class UriTest extends TestCase
      *
      * @dataProvider    dataProviderHostValidValues
      *
-     * @param           string  $host                   Host.
-     * @param           string  $normalizedHost         Normalized host.
+     * @param           string  $value                  Value.
+     * @param           string  $valueExpected          Expected value.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testGetHost(string $host, string $normalizedHost) : void
+    public function testGetHost(string $value, string $valueExpected): void
     {
-        $caughtHost = (new Uri)->withHost($host)->getHost();
+        $valueCaught = (new Uri())->withHost($value)->getHost();
 
-        self::assertEquals
-        (
-            $normalizedHost,
-            $caughtHost,
-            "Method \"Uri::getHost\" returned unexpected result.\n".
-            "Expected result after setting host \"$host\" is \"$normalizedHost\".\n".
-            "Caught result is \"$caughtHost\".\n"
+        self::assertEquals(
+            $valueExpected,
+            $valueCaught,
+            "Method \"Uri::getHost\" returned unexpected value.\n".
+            "Expected value after setting \"$value\" is \"$valueExpected\".\n".
+            "Caught value is \"$valueCaught\".\n"
         );
     }
     /** **********************************************************************
@@ -216,23 +74,22 @@ class UriTest extends TestCase
      *
      * @dataProvider    dataProviderPortValidValues
      *
-     * @param           int     $port                   Port.
-     * @param           mixed   $normalizedPort         Normalized port.
+     * @param           int     $value                  Value.
+     * @param           mixed   $valueExpected          Expected value.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testGetPort(int $port, $normalizedPort) : void
+    public function testGetPort(int $value, $valueExpected): void
     {
-        $caughtPort = (new Uri)->withPort($port)->getPort();
+        $valueCaught = (new Uri())->withPort($value)->getPort();
 
-        self::assertEquals
-        (
-            $normalizedPort,
-            $caughtPort,
-            "Method \"Uri::getPort\" returned unexpected result.\n".
-            "Expected result after setting port \"$port\" is \"$normalizedPort\".\n".
-            "Caught result is \"$caughtPort\".\n"
+        self::assertEquals(
+            $valueExpected,
+            $valueCaught,
+            "Method \"Uri::getPort\" returned unexpected value.\n".
+            "Expected value after setting \"$value\" is \"$valueExpected\".\n".
+            "Caught value is \"$valueCaught\".\n"
         );
     }
     /** **********************************************************************
@@ -241,25 +98,23 @@ class UriTest extends TestCase
      * @dataProvider    dataProviderSchemeStandardPorts
      *
      * @param           string  $scheme                 Scheme.
-     * @param           int     $port                   Port.
+     * @param           int     $port                   Standard port fo this scheme.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testGetPortWithStandardPort(string $scheme, int $port) : void
+    public function testGetPortWithStandardPort(string $scheme, int $port): void
     {
-        $caughtPort = (new Uri)
+        $portCaught = (new Uri())
             ->withScheme($scheme)
             ->withPort($port)
             ->getPort();
 
-        self::assertEquals
-        (
-            null,
-            $caughtPort,
-            "Method \"Uri::getPort\" returned unexpected result.\n".
-            "Expected result after setting scheme \"$scheme\" and port \"$port\" is null.\n".
-            "Caught result is \"$caughtPort\".\n"
+        self::assertNull(
+            $portCaught,
+            "Method \"Uri::getPort\" returned unexpected value.\n".
+            "Expected value after setting scheme \"$scheme\" and port \"$port\" is null.\n".
+            "Caught result is \"$portCaught\".\n"
         );
     }
     /** **********************************************************************
@@ -269,28 +124,26 @@ class UriTest extends TestCase
      *
      * @param           string  $login                  Login.
      * @param           string  $password               Password.
-     * @param           string  $normalizedInfo         Normalized user info.
+     * @param           mixed   $valueExpected          Expected value.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testGetUserInfo
-    (
+    public function testGetUserInfo(
         string  $login,
         string  $password,
-        string  $normalizedInfo
-    ) : void
+        string  $valueExpected
+    ): void
     {
-        $caughtInfo = (new Uri)->withUserInfo($login, $password)->getUserInfo();
+        $valueCaught = (new Uri())->withUserInfo($login, $password)->getUserInfo();
 
-        self::assertEquals
-        (
-            $normalizedInfo,
-            $caughtInfo,
-            "Method \"Uri::getUserInfo\" returned unexpected result.\n".
-            "Expected result after setting login \"$login\" and password \"$password\"".
-            " is \"$normalizedInfo\".\n".
-            "Caught result is \"$caughtInfo\".\n"
+        self::assertEquals(
+            $valueExpected,
+            $valueCaught,
+            "Method \"Uri::getUserInfo\" returned unexpected value.\n".
+            "Expected value after setting login \"$login\" and password \"$password\"".
+            " is \"$valueExpected\".\n".
+            "Caught value is \"$valueCaught\".\n"
         );
     }
     /** **********************************************************************
@@ -302,50 +155,42 @@ class UriTest extends TestCase
      * @param           string  $password               Password.
      * @param           string  $host                   Host.
      * @param           int     $port                   Port.
-     * @param           string  $normalizedAuthority    Normalized authority.
+     * @param           mixed   $valueExpected          Expected value.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testGetAuthority
-    (
+    public function testGetAuthority(
         string  $login,
         string  $password,
         string  $host,
         int     $port,
-        string  $normalizedAuthority
-    ) : void
+        string  $valueExpected
+    ): void
     {
-        $uri = (new Uri)->withUserInfo($login, $password);
+        $uri = (new Uri())->withUserInfo($login, $password);
 
-        try
-        {
+        try {
             $uri = $uri->withHost($host);
-        }
-        catch (InvalidArgumentException $exception)
-        {
+        } catch (InvalidArgumentException $exception) {
 
         }
 
-        try
-        {
+        try {
             $uri = $uri->withPort($port);
-        }
-        catch (InvalidArgumentException $exception)
-        {
+        } catch (InvalidArgumentException $exception) {
 
         }
 
-        $caughtAuthority = $uri->getAuthority();
+        $valueCaught = $uri->getAuthority();
 
-        self::assertEquals
-        (
-            $normalizedAuthority,
-            $caughtAuthority,
+        self::assertEquals(
+            $valueExpected,
+            $valueCaught,
             "Method \"Uri::getAuthority\" returned unexpected result.\n".
             "Expected result after setting login \"$login\", password \"$password\", ".
-            "host \"$host\" and port \"$port\" is \"$normalizedAuthority\".\n".
-            "Caught authority is \"$caughtAuthority\".\n"
+            "host \"$host\" and port \"$port\" is \"$valueExpected\".\n".
+            "Caught authority is \"$valueCaught\".\n"
         );
     }
     /** **********************************************************************
@@ -359,14 +204,11 @@ class UriTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testGetPath(string $path, string $normalizedPath) : void
+    public function testGetPath(string $path, string $normalizedPath): void
     {
-        $caughtPath = (new Uri)
-            ->withPath($path)
-            ->getPath();
+        $caughtPath = (new Uri())->withPath($path)->getPath();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $normalizedPath,
             $caughtPath,
             "Method \"Uri::getPath\" returned unexpected result.\n".
@@ -385,12 +227,11 @@ class UriTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testGetQuery(string $query, string $normalizedQuery) : void
+    public function testGetQuery(string $query, string $normalizedQuery): void
     {
-        $caughtQuery = (new Uri)->withQuery($query)->getQuery();
+        $caughtQuery = (new Uri())->withQuery($query)->getQuery();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $normalizedQuery,
             $caughtQuery,
             "Method \"Uri::getQuery\" returned unexpected result.\n".
@@ -409,12 +250,11 @@ class UriTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testGetFragment(string $fragment, string $normalizedFragment) : void
+    public function testGetFragment(string $fragment, string $normalizedFragment): void
     {
-        $caughtFragment = (new Uri)->withFragment($fragment)->getFragment();
+        $caughtFragment = (new Uri())->withFragment($fragment)->getFragment();
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $normalizedFragment,
             $caughtFragment,
             "Method \"Uri::getFragment\" returned unexpected result.\n".
@@ -440,8 +280,7 @@ class UriTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testToStringConverting
-    (
+    public function testToStringConverting(
         string  $scheme,
         string  $login,
         string  $password,
@@ -451,62 +290,46 @@ class UriTest extends TestCase
         string  $query,
         string  $fragment,
         string  $normalizedUri
-    ) : void
+    ): void
     {
-        $uri = new Uri;
+        $uri = new Uri();
 
-        try
-        {
+        try {
             $uri = $uri->withScheme($scheme);
-        }
-        catch (InvalidArgumentException $exception)
-        {
+        } catch (InvalidArgumentException $exception) {
 
         }
 
         $uri = $uri->withUserInfo($login, $password);
 
-        try
-        {
+        try {
             $uri = $uri->withHost($host);
-        }
-        catch (InvalidArgumentException $exception)
-        {
+        } catch (InvalidArgumentException $exception) {
 
         }
 
-        try
-        {
+        try {
             $uri = $uri->withPort($port);
-        }
-        catch (InvalidArgumentException $exception)
-        {
+        } catch (InvalidArgumentException $exception) {
 
         }
 
-        try
-        {
+        try {
             $uri = $uri->withPath($path);
-        }
-        catch (InvalidArgumentException $exception)
-        {
+        } catch (InvalidArgumentException $exception) {
 
         }
 
-        try
-        {
+        try {
             $uri = $uri->withQuery($query);
-        }
-        catch (InvalidArgumentException $exception)
-        {
+        } catch (InvalidArgumentException $exception) {
 
         }
 
         $uri        = $uri->withFragment($fragment);
         $caughtUri  = (string) $uri;
 
-        self::assertEquals
-        (
+        self::assertEquals(
             $normalizedUri,
             $caughtUri,
             "Method \"Uri::__toString\" returned unexpected result.\n".
@@ -517,19 +340,153 @@ class UriTest extends TestCase
         );
     }
     /** **********************************************************************
+     * Test URI setters methods return new instance.
+     *
+     * @return  void
+     * @throws  Throwable
+     ************************************************************************/
+    public function testSettersMethodsReturnNewInstance(): void
+    {
+        $methods = [
+            'withScheme'    => ['scheme'],
+            'withUserInfo'  => ['user', 'password'],
+            'withHost'      => ['site.com'],
+            'withPort'      => [50],
+            'withPath'      => ['/path/'],
+            'withQuery'     => ['key=value'],
+            'withFragment'  => ['fragment']
+        ];
+
+        foreach ($methods as $methodName => $methodArguments) {
+            $uri    = new Uri();
+            $uriNew = call_user_func_array([$uri, $methodName], $methodArguments);
+
+            self::assertNotEquals(
+                $uri,
+                $uriNew,
+                "Method \"Uri::$methodName\" returned unexpected result.\n".
+                "Expected result must be new instance of Uri.\n".
+                "Caught result is the same instance.\n"
+            );
+        }
+    }
+    /** **********************************************************************
+     * Test "Uri::withHost" throws exception with invalid argument.
+     *
+     * @dataProvider        dataProviderHostInvalidValues
+     * @expectedException   InvalidArgumentException
+     *
+     * @param               string $host                Host.
+     *
+     * @return              void
+     * @throws              Throwable
+     ************************************************************************/
+    public function testWithHostThrowsException(string $host): void
+    {
+        (new Uri())->withHost($host);
+
+        self::fail(
+            "Method \"Uri::withHost\" threw no expected exception.\n".
+            "Expects \"InvalidArgumentException\" exception on setting host \"$host\".\n".
+            "Caught no exception.\n"
+        );
+    }
+    /** **********************************************************************
+     * Test "Uri::withScheme" throws exception with invalid argument.
+     *
+     * @dataProvider        dataProviderSchemeInvalidValues
+     * @expectedException   InvalidArgumentException
+     *
+     * @param               string $scheme              Scheme.
+     *
+     * @return              void
+     * @throws              Throwable
+     ************************************************************************/
+    public function testWithSchemeThrowsException(string $scheme): void
+    {
+        (new Uri())->withScheme($scheme);
+
+        self::fail(
+            "Method \"Uri::withScheme\" threw no expected exception.\n".
+            "Expects \"InvalidArgumentException\" exception on setting scheme \"$scheme\".\n".
+            "Caught no exception.\n"
+        );
+    }
+    /** **********************************************************************
+     * Test "Uri::withPort" throws exception with invalid argument.
+     *
+     * @dataProvider        dataProviderPortInvalidValues
+     * @expectedException   InvalidArgumentException
+     *
+     * @param               int $port                   Port.
+     *
+     * @return              void
+     * @throws              Throwable
+     ************************************************************************/
+    public function testWithPortThrowsException(int $port): void
+    {
+        (new Uri())->withPort($port);
+
+        self::fail(
+            "Method \"Uri::withPort\" threw no expected exception.\n".
+            "Expects \"InvalidArgumentException\" exception on setting port \"$port\".\n".
+            "Caught no exception.\n"
+        );
+    }
+    /** **********************************************************************
+     * Test "Uri::withPath" throws exception with invalid argument.
+     *
+     * @dataProvider        dataProviderPathInvalidValues
+     * @expectedException   InvalidArgumentException
+     *
+     * @param               string $path                Path.
+     *
+     * @return              void
+     * @throws              Throwable
+     ************************************************************************/
+    public function testWithPathThrowsException(string $path): void
+    {
+        (new Uri())->withPath($path);
+
+        self::fail(
+            "Method \"Uri::withPath\" threw no expected exception.\n".
+            "Expects \"InvalidArgumentException\" exception on setting path \"$path\".\n".
+            "Caught no exception.\n"
+        );
+    }
+    /** **********************************************************************
+     * Test "Uri::withQuery" throws exception with invalid argument.
+     *
+     * @dataProvider        dataProviderQueryInvalidValues
+     * @expectedException   InvalidArgumentException
+     *
+     * @param               string $query               Query.
+     *
+     * @return              void
+     * @throws              Throwable
+     ************************************************************************/
+    public function testWithQueryThrowsException(string $query): void
+    {
+        (new Uri())->withQuery($query);
+
+        self::fail(
+            "Method \"Uri::withQuery\" threw no expected exception.\n".
+            "Expects \"InvalidArgumentException\" exception on setting query \"$query\".\n".
+            "Caught no exception.\n"
+        );
+    }
+    /** **********************************************************************
      * Data provider: scheme valid values.
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderSchemeValidValues() : array
+    public function dataProviderSchemeValidValues(): array
     {
-        $values = UriDataGenerator::getSchemeValues();
+        $values = DataGenerator::generate('uri.scheme');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = [$providedValue, $expectedValue];
             }
         }
@@ -543,15 +500,13 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderSchemeInvalidValues() : array
+    public function dataProviderSchemeInvalidValues(): array
     {
-        $values = UriDataGenerator::getSchemeValues();
+        $values = DataGenerator::generate('uri.scheme');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (is_null($expectedValue)) {
                 $result[] = [$providedValue];
             }
         }
@@ -563,15 +518,13 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderHostValidValues() : array
+    public function dataProviderHostValidValues(): array
     {
-        $values = UriDataGenerator::getHostValues();
+        $values = DataGenerator::generate('uri.host');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = [$providedValue, $expectedValue];
             }
         }
@@ -585,15 +538,13 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderHostInvalidValues() : array
+    public function dataProviderHostInvalidValues(): array
     {
-        $values = UriDataGenerator::getHostValues();
+        $values = DataGenerator::generate('uri.host');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (is_null($expectedValue)) {
                 $result[] = [$providedValue];
             }
         }
@@ -605,15 +556,13 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderPortValidValues() : array
+    public function dataProviderPortValidValues(): array
     {
-        $values = UriDataGenerator::getPortValues();
+        $values = DataGenerator::generate('uri.port');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue) && $expectedValue !== 0)
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue) && $expectedValue !== 0) {
                 $result[] = [$providedValue, $expectedValue];
             }
         }
@@ -627,15 +576,13 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderPortInvalidValues() : array
+    public function dataProviderPortInvalidValues(): array
     {
-        $values = UriDataGenerator::getPortValues();
+        $values = DataGenerator::generate('uri.port');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (is_null($expectedValue)) {
                 $result[] = [$providedValue];
             }
         }
@@ -647,12 +594,12 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderSchemeStandardPorts() : array
+    public function dataProviderSchemeStandardPorts(): array
     {
-        $result = [];
+        $standardPorts  = CollectionMediator::get('uri.scheme.standardPorts');
+        $result         = [];
 
-        foreach (self::SCHEMES_STANDARD_PORTS as $scheme => $port)
-        {
+        foreach ($standardPorts as $port => $scheme) {
             $result[] = [$scheme, $port];
         }
 
@@ -663,20 +610,18 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderUserInfo() : array
+    public function dataProviderUserInfo(): array
     {
-        $values = UriDataGenerator::getUserInfoValues();
+        $values = DataGenerator::generate('uri.userInfo');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
+        foreach ($values as $providedValue => $expectedValue) {
             $explode    = explode(':', $providedValue);
-            $result[]   =
-                [
-                    $explode[0],
-                    $explode[1] ?? '',
-                    !is_null($expectedValue) ? $expectedValue : ''
-                ];
+            $result[]   = [
+                $explode[0],
+                $explode[1] ?? '',
+                !is_null($expectedValue) ? $expectedValue : ''
+            ];
         }
 
         $result[] = ['', '', ''];
@@ -688,56 +633,50 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderAuthority() : array
+    public function dataProviderAuthority(): array
     {
-        $userInfoValues = UriDataGenerator::getUserInfoValues();
-        $hostValues     = UriDataGenerator::getHostValues();
-        $portValues     = UriDataGenerator::getPortValues();
+        $userInfoValues = DataGenerator::generate('uri.userInfo');
+        $hostValues     = DataGenerator::generate('uri.host');
+        $portValues     = DataGenerator::generate('uri.port');
         $result         = [];
 
-        foreach ($userInfoValues as $providedValue => $expectedValue)
-        {
+        foreach ($userInfoValues as $providedValue => $expectedValue) {
             $explode    = explode(':', $providedValue);
             $login      = $explode[0];
             $password   = $explode[1] ?? '';
-            $result[]   =
-                [
-                    $login,
-                    $password,
-                    'site.com',
-                    123,
-                    !is_null($expectedValue)
-                        ? "$expectedValue@site.com:123"
-                        : 'site.com:123'
-                ];
+            $result[]   = [
+                $login,
+                $password,
+                'site.com',
+                123,
+                !is_null($expectedValue)
+                    ? "$expectedValue@site.com:123"
+                    : 'site.com:123'
+            ];
         }
 
-        foreach ($hostValues as $providedValue => $expectedValue)
-        {
-            $result[] =
-                [
-                    'user',
-                    'password',
-                    $providedValue,
-                    123,
-                    !is_null($expectedValue)
-                        ? "user:password@$expectedValue:123"
-                        : ''
-                ];
+        foreach ($hostValues as $providedValue => $expectedValue) {
+            $result[] = [
+                'user',
+                'password',
+                $providedValue,
+                123,
+                !is_null($expectedValue)
+                    ? "user:password@$expectedValue:123"
+                    : ''
+            ];
         }
 
-        foreach ($portValues as $providedValue => $expectedValue)
-        {
-            $result[] =
-                [
-                    'user',
-                    'password',
-                    'site.com',
-                    $providedValue,
-                    !is_null($expectedValue) && $expectedValue !== 0
-                        ? "user:password@site.com:$expectedValue"
-                        : 'user:password@site.com'
-                ];
+        foreach ($portValues as $providedValue => $expectedValue) {
+            $result[] = [
+                'user',
+                'password',
+                'site.com',
+                $providedValue,
+                !is_null($expectedValue) && $expectedValue !== 0
+                    ? "user:password@site.com:$expectedValue"
+                    : 'user:password@site.com'
+            ];
         }
 
         return $result;
@@ -747,15 +686,13 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderPathValidValues() : array
+    public function dataProviderPathValidValues(): array
     {
-        $values = UriDataGenerator::getPathValues();
+        $values = DataGenerator::generate('uri.path');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = [$providedValue, $expectedValue];
             }
         }
@@ -769,15 +706,13 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderPathInvalidValues() : array
+    public function dataProviderPathInvalidValues(): array
     {
-        $values = UriDataGenerator::getPathValues();
+        $values = DataGenerator::generate('uri.path');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (is_null($expectedValue)) {
                 $result[] = [$providedValue];
             }
         }
@@ -789,15 +724,13 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderQueryValidValues() : array
+    public function dataProviderQueryValidValues(): array
     {
-        $values = UriDataGenerator::getQueryValues();
+        $values = DataGenerator::generate('uri.query');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (!is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (!is_null($expectedValue)) {
                 $result[] = [$providedValue, $expectedValue];
             }
         }
@@ -811,15 +744,13 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderQueryInvalidValues() : array
+    public function dataProviderQueryInvalidValues(): array
     {
-        $values = UriDataGenerator::getQueryValues();
+        $values = DataGenerator::generate('uri.query');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
-            if (is_null($expectedValue))
-            {
+        foreach ($values as $providedValue => $expectedValue) {
+            if (is_null($expectedValue)) {
                 $result[] = [$providedValue];
             }
         }
@@ -831,13 +762,12 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderFragment() : array
+    public function dataProviderFragment(): array
     {
-        $values = UriDataGenerator::getFragmentValues();
+        $values = DataGenerator::generate('uri.fragment');
         $result = [];
 
-        foreach ($values as $providedValue => $expectedValue)
-        {
+        foreach ($values as $providedValue => $expectedValue) {
             $result[] = [$providedValue, !is_null($expectedValue) ? $expectedValue : ''];
         }
 
@@ -850,131 +780,130 @@ class UriTest extends TestCase
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderUriByParts() : array
+    public function dataProviderUriByParts(): array
     {
-        return
+        return [
             [
-                [
-                    'scheme',
-                    'login',
-                    'password',
-                    'site.com',
-                    123,
-                    'path',
-                    'key=value',
-                    'fragment',
-                    'scheme://login:password@site.com:123/path?key=value#fragment'
-                ],
-                [
-                    '',
-                    'login',
-                    'password',
-                    'site.com',
-                    123,
-                    'path',
-                    'key=value',
-                    'fragment',
-                    '//login:password@site.com:123/path?key=value#fragment'
-                ],
-                [
-                    'scheme',
-                    '',
-                    'password',
-                    'site.com',
-                    123,
-                    'path',
-                    'key=value',
-                    'fragment',
-                    'scheme://site.com:123/path?key=value#fragment'
-                ],
-                [
-                    'scheme',
-                    'login',
-                    '',
-                    'site.com',
-                    123,
-                    'path',
-                    'key=value',
-                    'fragment',
-                    'scheme://login@site.com:123/path?key=value#fragment'
-                ],
-                [
-                    'scheme',
-                    'login',
-                    'password',
-                    '',
-                    123,
-                    'path',
-                    'key=value',
-                    'fragment',
-                    'scheme:path?key=value#fragment'
-                ],
-                [
-                    'scheme',
-                    'login',
-                    'password',
-                    '',
-                    123,
-                    '/path',
-                    'key=value',
-                    'fragment',
-                    'scheme:/path?key=value#fragment'
-                ],
-                [
-                    'scheme',
-                    'login',
-                    'password',
-                    'site.com',
-                    0,
-                    'path',
-                    'key=value',
-                    'fragment',
-                    'scheme://login:password@site.com/path?key=value#fragment'
-                ],
-                [
-                    'scheme',
-                    'login',
-                    'password',
-                    'site.com',
-                    123,
-                    '',
-                    'key=value',
-                    'fragment',
-                    'scheme://login:password@site.com:123?key=value#fragment'
-                ],
-                [
-                    'scheme',
-                    'login',
-                    'password',
-                    'site.com',
-                    123,
-                    '/path',
-                    'key=value',
-                    'fragment',
-                    'scheme://login:password@site.com:123/path?key=value#fragment'
-                ],
-                [
-                    'scheme',
-                    'login',
-                    'password',
-                    'site.com',
-                    123,
-                    'path',
-                    '',
-                    'fragment',
-                    'scheme://login:password@site.com:123/path#fragment'
-                ],
-                [
-                    'scheme',
-                    'login',
-                    'password',
-                    'site.com',
-                    123,
-                    'path',
-                    'key=value',
-                    '',
-                    'scheme://login:password@site.com:123/path?key=value'
-                ],
-            ];
+                'scheme',
+                'login',
+                'password',
+                'site.com',
+                123,
+                'path',
+                'key=value',
+                'fragment',
+                'scheme://login:password@site.com:123/path?key=value#fragment'
+            ],
+            [
+                '',
+                'login',
+                'password',
+                'site.com',
+                123,
+                'path',
+                'key=value',
+                'fragment',
+                '//login:password@site.com:123/path?key=value#fragment'
+            ],
+            [
+                'scheme',
+                '',
+                'password',
+                'site.com',
+                123,
+                'path',
+                'key=value',
+                'fragment',
+                'scheme://site.com:123/path?key=value#fragment'
+            ],
+            [
+                'scheme',
+                'login',
+                '',
+                'site.com',
+                123,
+                'path',
+                'key=value',
+                'fragment',
+                'scheme://login@site.com:123/path?key=value#fragment'
+            ],
+            [
+                'scheme',
+                'login',
+                'password',
+                '',
+                123,
+                'path',
+                'key=value',
+                'fragment',
+                'scheme:path?key=value#fragment'
+            ],
+            [
+                'scheme',
+                'login',
+                'password',
+                '',
+                123,
+                '/path',
+                'key=value',
+                'fragment',
+                'scheme:/path?key=value#fragment'
+            ],
+            [
+                'scheme',
+                'login',
+                'password',
+                'site.com',
+                0,
+                'path',
+                'key=value',
+                'fragment',
+                'scheme://login:password@site.com/path?key=value#fragment'
+            ],
+            [
+                'scheme',
+                'login',
+                'password',
+                'site.com',
+                123,
+                '',
+                'key=value',
+                'fragment',
+                'scheme://login:password@site.com:123?key=value#fragment'
+            ],
+            [
+                'scheme',
+                'login',
+                'password',
+                'site.com',
+                123,
+                '/path',
+                'key=value',
+                'fragment',
+                'scheme://login:password@site.com:123/path?key=value#fragment'
+            ],
+            [
+                'scheme',
+                'login',
+                'password',
+                'site.com',
+                123,
+                'path',
+                '',
+                'fragment',
+                'scheme://login:password@site.com:123/path#fragment'
+            ],
+            [
+                'scheme',
+                'login',
+                'password',
+                'site.com',
+                123,
+                'path',
+                'key=value',
+                '',
+                'scheme://login:password@site.com:123/path?key=value'
+            ],
+        ];
     }
 }

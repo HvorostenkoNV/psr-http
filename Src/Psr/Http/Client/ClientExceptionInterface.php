@@ -7,7 +7,7 @@ use Throwable;
 /** ***********************************************************************************************
  * Every HTTP client related exception MUST implement this interface.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface ClientExceptionInterface extends Throwable

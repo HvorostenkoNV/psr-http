@@ -7,7 +7,8 @@ use Exception;
 /** ***********************************************************************************************
  * Normalizing exception.
  *
- * @package avmg_psr_http
+ * @deprecated
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 class NormalizingException extends Exception

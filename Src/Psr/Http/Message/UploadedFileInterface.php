@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace Psr\Http\Message;
 
-use
-    InvalidArgumentException,
-    RuntimeException;
+use InvalidArgumentException;
+use RuntimeException;
 /** ***********************************************************************************************
  * Value object representing a file uploaded through an HTTP request.
  *
@@ -14,7 +13,7 @@ use
  * state of the current instance and return an instance that contains the
  * changed state.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface UploadedFileInterface
@@ -34,7 +33,7 @@ interface UploadedFileInterface
      * @return  StreamInterface             Stream representation of the uploaded file.
      * @throws  RuntimeException            No stream is available or no stream can be created.
      ************************************************************************/
-    public function getStream() : StreamInterface;
+    public function getStream(): StreamInterface;
     /** **********************************************************************
      * Move the uploaded file to a new location.
      *
@@ -70,7 +69,7 @@ interface UploadedFileInterface
      * @throws  RuntimeException            On any error during the move operation or
      *                                      on the second or subsequent call to the method.
      ************************************************************************/
-    public function moveTo(string $targetPath) : void;
+    public function moveTo(string $targetPath): void;
     /** **********************************************************************
      * Retrieve the file size.
      *
@@ -80,7 +79,7 @@ interface UploadedFileInterface
      *
      * @return int|null                     File size in bytes or null if unknown.
      ************************************************************************/
-    public function getSize() : ?int;
+    public function getSize(): ?int;
     /** **********************************************************************
      * Retrieve the error associated with the uploaded file.
      *
@@ -96,7 +95,7 @@ interface UploadedFileInterface
      *
      * @return int                          One of PHP's UPLOAD_ERR_XXX constants.
      ************************************************************************/
-    public function getError() : int;
+    public function getError(): int;
     /** **********************************************************************
      * Retrieve the filename sent by the client.
      *
@@ -110,7 +109,7 @@ interface UploadedFileInterface
      * @return string|null                  Filename sent by the client or null
      *                                      if none was provided.
      ************************************************************************/
-    public function getClientFilename() : ?string;
+    public function getClientFilename(): ?string;
     /** **********************************************************************
      * Retrieve the media type sent by the client.
      *
@@ -124,5 +123,5 @@ interface UploadedFileInterface
      * @return string|null                  Media type sent by the client or null
      *                                      if none was provided.
      ************************************************************************/
-    public function getClientMediaType() : ?string;
+    public function getClientMediaType(): ?string;
 }

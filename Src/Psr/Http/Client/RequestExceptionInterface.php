@@ -11,7 +11,7 @@ use Psr\Http\Message\RequestInterface;
  *      - Request is invalid (e.g. method is missing)
  *      - Runtime request errors (e.g. the body stream is not seekable)
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface RequestExceptionInterface extends ClientExceptionInterface
@@ -24,5 +24,5 @@ interface RequestExceptionInterface extends ClientExceptionInterface
      *
      * @return RequestInterface             Request.
      ************************************************************************/
-    public function getRequest() : RequestInterface;
+    public function getRequest(): RequestInterface;
 }

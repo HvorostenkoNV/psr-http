@@ -11,7 +11,7 @@ use Psr\Http\Message\RequestInterface;
  *
  * Example: the target host name can not be resolved or the connection failed.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface NetworkExceptionInterface extends ClientExceptionInterface
@@ -24,5 +24,5 @@ interface NetworkExceptionInterface extends ClientExceptionInterface
      *
      * @return RequestInterface             Request.
      ************************************************************************/
-    public function getRequest() : RequestInterface;
+    public function getRequest(): RequestInterface;
 }

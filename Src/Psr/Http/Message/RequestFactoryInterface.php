@@ -5,7 +5,7 @@ namespace Psr\Http\Message;
 /** ***********************************************************************************************
  * Request factory interface.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface RequestFactoryInterface
@@ -18,5 +18,5 @@ interface RequestFactoryInterface
      *
      * @return  RequestInterface                Request.
      ************************************************************************/
-    public function createRequest(string $method, $uri) : RequestInterface;
+    public function createRequest(string $method, $uri): RequestInterface;
 }

@@ -12,14 +12,13 @@ use
 /** ***********************************************************************************************
  * PSR-7 ResponseInterface implementation.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 class Response extends AbstractMessage implements ResponseInterface
 {
-    private
-        $status         = 0,
-        $reasonPhrase   = '';
+    private $status         = 0;
+    private $reasonPhrase   = '';
     /** **********************************************************************
      * Constructor.
      *
@@ -47,7 +46,7 @@ class Response extends AbstractMessage implements ResponseInterface
      *
      * @return int                          Status code.
      ************************************************************************/
-    public function getStatusCode() : int
+    public function getStatusCode(): int
     {
         return $this->status > 0
             ? $this->status
@@ -77,7 +76,7 @@ class Response extends AbstractMessage implements ResponseInterface
      *                                      and, optionally, reason phrase.
      * @throws  InvalidArgumentException    Invalid status code arguments.
      ************************************************************************/
-    public function withStatus(int $code, string $reasonPhrase = '') : ResponseInterface
+    public function withStatus(int $code, string $reasonPhrase = ''): ResponseInterface
     {
         try
         {
@@ -108,7 +107,7 @@ class Response extends AbstractMessage implements ResponseInterface
      * @return string                       Reason phrase; must return an empty
      *                                      string if none present.
      ************************************************************************/
-    public function getReasonPhrase() : string
+    public function getReasonPhrase(): string
     {
         return strlen($this->reasonPhrase) > 0
             ? $this->reasonPhrase

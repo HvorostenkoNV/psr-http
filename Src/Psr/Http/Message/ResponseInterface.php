@@ -19,7 +19,7 @@ use InvalidArgumentException;
  * be implemented such that they retain the internal state of the current
  * message and return an instance that contains the changed state.
  *
- * @package avmg_psr_http
+ * @package AVMG\Http
  * @author  Hvorostenko
  *************************************************************************************************/
 interface ResponseInterface extends MessageInterface
@@ -32,7 +32,7 @@ interface ResponseInterface extends MessageInterface
      *
      * @return int                          Status code.
      ************************************************************************/
-    public function getStatusCode() : int;
+    public function getStatusCode(): int;
     /** **********************************************************************
      * Return an instance with the specified status code and, optionally, reason phrase.
      *
@@ -57,7 +57,7 @@ interface ResponseInterface extends MessageInterface
      *                                      and, optionally, reason phrase.
      * @throws  InvalidArgumentException    Invalid status code arguments.
      ************************************************************************/
-    public function withStatus(int $code, string $reasonPhrase = '') : ResponseInterface;
+    public function withStatus(int $code, string $reasonPhrase = ''): ResponseInterface;
     /** **********************************************************************
      * Gets the response reason phrase associated with the status code.
      *
@@ -73,5 +73,5 @@ interface ResponseInterface extends MessageInterface
      * @return string                       Reason phrase; must return an empty
      *                                      string if none present.
      ************************************************************************/
-    public function getReasonPhrase() : string;
+    public function getReasonPhrase(): string;
 }
